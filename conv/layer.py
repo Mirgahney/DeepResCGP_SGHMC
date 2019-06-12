@@ -7,7 +7,7 @@ jitter = 1e-3
 
 class PatchExtractor(object):
     """Extracts patches including color channels from images."""
-    def __init__(self, input_size, filter_size, feature_maps, stride=1):
+    def __init__(self, input_size, filter_size, feature_maps, stride=1, pad = 0):
         self.input_size = list(input_size)
         self.stride = stride
         self.dilation = 1
@@ -17,6 +17,7 @@ class PatchExtractor(object):
         self.patch_count = self._patch_count()
         self.patch_length = self._patch_length()
         self.out_image_height, self.out_image_width = self._out_image_size()
+        self.pad = pad
 
     def _extract_image_patches(self, NHWC_X):
         # returns: N x H x W x C * P
@@ -52,8 +53,8 @@ class PatchExtractor(object):
         return height * width
 
     def _out_image_size(self):
-        height = (self.input_size[0] - self.patch_shape[0]) // self.stride + 1
-        width = (self.input_size[1] - self.patch_shape[1]) // self.stride + 1
+        height = (self.input_size[0] - self.patch_shape[0] + 2*self.pad) // self.stride + 1
+        width = (self.input_size[1] - self.patch_shape[1] + 2*self.pad) // self.stride + 1
         return height, width
 
 class MultiOutputConvKernel(object):
@@ -95,11 +96,11 @@ class MultiOutputConvKernel(object):
         return tf.map_fn(Kdiag, PNL_patches, parallel_iterations=self.patch_count)
 
 class ConvLayer(Layer):
-    def __init__(self, input_size, patch_size, stride, base_kernel, Z, feature_maps_out=1):
+    def __init__(self, input_size, patch_size, stride, base_kernel, Z, feature_maps_out=1, pad=0):
         self.Z = tf.Variable(Z, dtype=tf.float64, name='Z')
         self.base_kernel = base_kernel
 
-        self.patch_extractor = PatchExtractor(input_size, patch_size, input_size[2], stride=stride)
+        self.patch_extractor = PatchExtractor(input_size, patch_size, input_size[2], stride=stride, pad=pad)
 
         self.feature_maps_in = input_size[2]
         self.feature_maps_out = feature_maps_out
