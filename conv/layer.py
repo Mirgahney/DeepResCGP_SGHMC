@@ -10,6 +10,7 @@ class PatchExtractor(object):
     def __init__(self, input_size, filter_size, feature_maps, stride=1, pad = 0):
         self.input_size = list(input_size)
         self.stride = stride
+        self.pad = pad
         self.dilation = 1
         self.filter_size = filter_size
         self.feature_maps = feature_maps
@@ -17,7 +18,6 @@ class PatchExtractor(object):
         self.patch_count = self._patch_count()
         self.patch_length = self._patch_length()
         self.out_image_height, self.out_image_width = self._out_image_size()
-        self.pad = pad
 
     def _extract_image_patches(self, NHWC_X):
         # returns: N x H x W x C * P
