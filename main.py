@@ -84,7 +84,7 @@ for layer in range(0, flags.layers):
             print('----conv-----\n-----pad-----')
             npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
             pad_layer = lambda H_X: tf.pad(H_X, npad, mode='CONSTANT')
-            layers.append(padd_layer)
+            layers.append(pad_layer)
             pad = 1
         else:
             pad = 0
