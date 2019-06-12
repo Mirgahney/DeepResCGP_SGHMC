@@ -85,7 +85,10 @@ for layer in range(0, flags.layers):
             npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
             pad_layer = lambda H_X: tf.pad(H_X, npad, mode='CONSTANT')
             layers.append(padd_layer)
-        layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps)
+            pad = 1
+        else:
+            pad = 0
+        layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=pad)
 
 
         input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
