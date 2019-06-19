@@ -80,6 +80,7 @@ for layer in range(0, flags.layers):
     if layer != flags.layers-1:
 
         base_kernel = kernels.SquaredExponential(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
+        print('filter_size ', filter_size)
         if filter_size == 3:
             print('----conv-----\n-----pad-----')
             npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
