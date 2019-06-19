@@ -57,6 +57,12 @@ class PatchExtractor(object):
         width = (self.input_size[1] - self.patch_shape[1] + 2*self.pad) // self.stride + 1
         return height, width
 
+    def _padd_with(self):
+
+    	if self.pad == 'SAME':
+    		pad = self.filter_size -2 
+    	return pad
+    	
 class MultiOutputConvKernel(object):
     def __init__(self, base_kernel, patch_count):
         self.base_kernel = base_kernel

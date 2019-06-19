@@ -69,7 +69,7 @@ Z_inner = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
 patches = conv_utils.cluster_patches(Xtrain, flags.M, 10)
 
 strides = (2, 1, 1, 1)
-filters = (5, 5, 5, 5)
+filters = (3, 5, 5, 5)
 for layer in range(0, flags.layers):
     if layer == 0:
         Z = patches
@@ -82,10 +82,10 @@ for layer in range(0, flags.layers):
         base_kernel = kernels.SquaredExponential(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
         print('filter_size ', filter_size)
         if filter_size == 3:
-            print('----conv-----\n-----pad-----')
-            npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
-            pad_layer = lambda H_X: tf.pad(H_X, npad, mode='CONSTANT')
-            layers.append(pad_layer)
+            # print('----conv-----\n-----pad-----')
+            # npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
+            # pad_layer = lambda H_X: tf.pad(H_X, npad, mode='CONSTANT')
+            # layers.append(pad_layer)
             pad = 1
         else:
             pad = 0
