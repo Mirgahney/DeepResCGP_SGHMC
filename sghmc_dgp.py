@@ -93,6 +93,7 @@ class DGP(BaseModel):
 
         for layer in self.layers:
             if layer.ltype == 'Residual':
+                print('Acces residual layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
                 mean += Fs[-1]
 
