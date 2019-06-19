@@ -104,6 +104,7 @@ class ConvLayer(Layer):
 
         self.feature_maps_in = input_size[2]
         self.feature_maps_out = feature_maps_out
+        self.pad = pad
 
         self.patch_count = self.patch_extractor.patch_count
         self.patch_length = self.patch_extractor.patch_length
@@ -132,7 +133,7 @@ class ConvLayer(Layer):
             self.patch_extractor.input_size[0],
             self.patch_extractor.input_size[1],
             self.feature_maps_in])
-        
+
         if self.pad != 0:
             npad = ((0,0),(1,1),(1,1),(0,0))
             NHWC_X = np.pad(NHWC_X, pad_width=npad, mode='constant', constant_values=0) 
