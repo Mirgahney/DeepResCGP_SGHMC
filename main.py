@@ -69,7 +69,7 @@ Z_inner = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
 patches = conv_utils.cluster_patches(Xtrain, flags.M, 10)
 
 strides = (2, 1, 1, 1)
-filters = (3, 5, 5, 5)
+filters = (5, 3, 5, 5)
 for layer in range(0, flags.layers):
     if layer == 0:
         Z = patches
@@ -83,9 +83,11 @@ for layer in range(0, flags.layers):
         print('filter_size ', filter_size)
         if filter_size == 3:
             pad = 'SAME'
+            ltype = 'Residual'
         else:
             pad = 'VALID'
-        layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=pad)
+            ltype = 'Plain'
+        layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=pad, ltype =ltype)
 
 
         input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
