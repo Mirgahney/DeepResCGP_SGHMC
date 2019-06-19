@@ -113,7 +113,7 @@ class ConvLayer(Layer):
 
         self.feature_maps_in = input_size[2]
         self.feature_maps_out = feature_maps_out
-        self.pad = pad
+        self.pad_value = self.patch_extractor.pad_value
 
         self.patch_count = self.patch_extractor.patch_count
         self.patch_length = self.patch_extractor.patch_length
