@@ -90,7 +90,12 @@ class DGP(BaseModel):
         Fmeans, Fvars = [], []
 
         for layer in self.layers:
-            mean, var = layer.conditional(Fs[-1])
+            if layer.ltype == 'Residual':
+                mean, var = layer.conditional(Fs[-1])
+                mean += Fs[-1]
+
+            else:
+                mean, var = layer.conditional(Fs[-1])
             print('meand shape ', mean.shape)
             eps = tf.random_normal(tf.shape(mean), dtype=tf.float64)
             F = mean + eps * tf.sqrt(var)

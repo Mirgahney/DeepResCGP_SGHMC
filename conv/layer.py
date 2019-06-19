@@ -105,7 +105,7 @@ class MultiOutputConvKernel(object):
         return tf.map_fn(Kdiag, PNL_patches, parallel_iterations=self.patch_count)
 
 class ConvLayer(Layer):
-    def __init__(self, input_size, patch_size, stride, base_kernel, Z, feature_maps_out=1, pad=0):
+    def __init__(self, input_size, patch_size, stride, base_kernel, Z, feature_maps_out=1, pad='VALID', ltype='Plain'):
         self.Z = tf.Variable(Z, dtype=tf.float64, name='Z')
         self.base_kernel = base_kernel
 
@@ -127,6 +127,8 @@ class ConvLayer(Layer):
 
         self.Lz = tf.placeholder_with_default(self._compute_Lu(self.Z),
                 shape=[Z.shape[0], Z.shape[0]])
+
+        self.ltype = ltype
 
     def _compute_Lu(self, Z):
         MM_Kzz =  self.conv_kernel.Kzz(self.Z)
