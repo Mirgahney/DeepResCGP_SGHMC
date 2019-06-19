@@ -8,7 +8,7 @@ from scipy.cluster.vq import kmeans2
 
 
 class Layer(object):
-    def __init__(self, kern, outputs, Z, mean=None):
+    def __init__(self, kern, outputs, Z, mean=None, ltype='Plain'):
         self.outputs, self.kernel = outputs, kern
         self.M = Z.shape[0]
         self.mean = mean
@@ -19,6 +19,8 @@ class Layer(object):
 
         self.Lz = tf.placeholder_with_default(self._compute_Lz(self.Z),
                 shape=[Z.shape[0], Z.shape[0]])
+
+        self.ltype = ltype
 
     def _compute_Lz(self, Z):
         M = tf.shape(Z)[0]
