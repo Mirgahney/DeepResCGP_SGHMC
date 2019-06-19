@@ -62,7 +62,7 @@ class PatchExtractor(object):
     	if self.pad == 'SAME':
     		pad = self.filter_size -2 
     	return pad
-    	
+
 class MultiOutputConvKernel(object):
     def __init__(self, base_kernel, patch_count):
         self.base_kernel = base_kernel
@@ -141,8 +141,11 @@ class ConvLayer(Layer):
             self.feature_maps_in])
         print('NHWC_X without pad ', NHWC_X.shape)
         if self.pad != 0:
-            npad = ((0,0),(1,1),(1,1),(0,0))
-            NHWC_X = np.pad(NHWC_X, pad_width=npad, mode='constant', constant_values=0) 
+            # npad = ((0,0),(1,1),(1,1),(0,0))
+            # NHWC_X = np.pad(NHWC_X, pad_width=npad, mode='constant', constant_values=0) 
+            npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
+            NHWC_X = tf.pad(NHWC_X, npad, mode='CONSTANT')
+            print('NHWC_X after pad ', NHWC_X.shape)
         
         PNL_patches = self.patch_extractor.patches_PNL(NHWC_X)
 
