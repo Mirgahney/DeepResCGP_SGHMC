@@ -132,6 +132,11 @@ class ConvLayer(Layer):
             self.patch_extractor.input_size[0],
             self.patch_extractor.input_size[1],
             self.feature_maps_in])
+        
+        if self.pad != 0:
+            npad = ((0,0),(1,1),(1,1),(0,0))
+            NHWC_X = np.pad(NHWC_X, pad_width=npad, mode='constant', constant_values=0) 
+        
         PNL_patches = self.patch_extractor.patches_PNL(NHWC_X)
 
         PMN_Kzf = self.conv_kernel.Kzf(self.Z, PNL_patches)

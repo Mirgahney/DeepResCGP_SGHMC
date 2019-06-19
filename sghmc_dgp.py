@@ -91,6 +91,7 @@ class DGP(BaseModel):
 
         for layer in self.layers:
             mean, var = layer.conditional(Fs[-1])
+            print('meand shape ', mean.shape)
             eps = tf.random_normal(tf.shape(mean), dtype=tf.float64)
             F = mean + eps * tf.sqrt(var)
             Fs.append(F)
