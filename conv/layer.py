@@ -7,7 +7,7 @@ jitter = 1e-3
 
 class PatchExtractor(object):
     """Extracts patches including color channels from images."""
-    def __init__(self, input_size, filter_size, feature_maps, stride=1, pad = 0):
+    def __init__(self, input_size, filter_size, feature_maps, stride=1, pad = 'VALID'):
         self.input_size = list(input_size)
         self.stride = stride
         self.pad = pad
@@ -15,6 +15,7 @@ class PatchExtractor(object):
         self.filter_size = filter_size
         self.feature_maps = feature_maps
         self.patch_shape = [filter_size, filter_size]
+        self.pad_value = self._padd_with()
         self.patch_count = self._patch_count()
         self.patch_length = self._patch_length()
         self.out_image_height, self.out_image_width = self._out_image_size()
@@ -53,16 +54,18 @@ class PatchExtractor(object):
         return height * width
 
     def _out_image_size(self):
-        height = (self.input_size[0] - self.patch_shape[0] + 2*self.pad) // self.stride + 1
-        width = (self.input_size[1] - self.patch_shape[1] + 2*self.pad) // self.stride + 1
+        height = (self.input_size[0] - self.patch_shape[0] + 2*self.pad_value) // self.stride + 1
+        width = (self.input_size[1] - self.patch_shape[1] + 2*self.pad_value) // self.stride + 1
         return height, width
 
     def _padd_with(self):
 
     	if self.pad == 'SAME':
     		pad = self.filter_size -2 
+    	else:
+    		pad = 0
     	return pad
-
+   
 class MultiOutputConvKernel(object):
     def __init__(self, base_kernel, patch_count):
         self.base_kernel = base_kernel
@@ -140,10 +143,10 @@ class ConvLayer(Layer):
             self.patch_extractor.input_size[1],
             self.feature_maps_in])
         print('NHWC_X without pad ', NHWC_X.shape)
-        if self.pad != 0:
+        if self.pad_value != 0:
             # npad = ((0,0),(1,1),(1,1),(0,0))
             # NHWC_X = np.pad(NHWC_X, pad_width=npad, mode='constant', constant_values=0) 
-            npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
+            npad = tf.constant([[0,0],[self.pad_value, self.pad_value],[self.pad_value, self.pad_value],[0,0]])
             NHWC_X = tf.pad(NHWC_X, npad, mode='CONSTANT')
             print('NHWC_X after pad ', NHWC_X.shape)
         

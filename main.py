@@ -82,13 +82,9 @@ for layer in range(0, flags.layers):
         base_kernel = kernels.SquaredExponential(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
         print('filter_size ', filter_size)
         if filter_size == 3:
-            # print('----conv-----\n-----pad-----')
-            # npad = tf.constant([[0,0],[1,1],[1,1],[0,0]])
-            # pad_layer = lambda H_X: tf.pad(H_X, npad, mode='CONSTANT')
-            # layers.append(pad_layer)
-            pad = 1
+            pad = 'SAME'
         else:
-            pad = 0
+            pad = 'VALID'
         layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=pad)
 
 
