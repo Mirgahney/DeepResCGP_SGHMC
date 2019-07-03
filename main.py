@@ -120,12 +120,28 @@ for i in range(flags.iterations):
     if i % 500 == 1:
         print("Iteration {}".format(i))
         model.print_sample_performance()
+        accuracy = sample_performance_acc(model)
+        print("Model accuracy:", accuracy)
 
     if i % 10000 == 0:
         model.save(flags.out)
 
 POSTERIOR_SAMPLES = 25
 model.collect_samples(POSTERIOR_SAMPLES, 200)
+
+def sample_performance_acc(model):
+    X_batch, Y_batch = model.get_minibatch()
+    batch_size = 32
+    batches = X_batch.shape[0] // batch_size
+    correct = 0
+    for i in range(batches + 1):
+        slicer = slice(i * batch_size, (i+1) * batch_size)
+        X = X_batch[slicer]
+        Y = Y_batch[slicer]
+        mean, var = model.predict_y(X.reshape(X.shape[0], np.prod(X.shape[1:])), POSTERIOR_SAMPLES)
+        prediction = mean.mean(axis=0).argmax(axis=1)
+        correct += (prediction == Y).sum()
+    return correct / Y_batch.shape[0]
 
 def measure_accuracy(model):
     batch_size = 32
