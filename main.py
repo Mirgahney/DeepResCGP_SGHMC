@@ -23,7 +23,7 @@ parser.add_argument('--cifar', action='store_true')
 parser.add_argument('--layers', default=3, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
-parser.add_argument('out', type=str)
+parser.add_argument('out', default='results', type=str)
 
 flags = parser.parse_args()
 
@@ -113,15 +113,19 @@ if flags.load is not None:
     checkpoint = tf.train.latest_checkpoint(flags.load)
     model._saver.restore(model.session, checkpoint)
 
+# create a data frame to save intermediate resulr
+result_df = pd.DataFrame(columns=['step', 'mll', 'accuracy'])
+
 for i in range(flags.iterations):
     model.sghmc_step()
     model.train_hypers()
     print("Iteration", i, end='\r')
     if i % 500 == 1:
         print("Iteration {}".format(i))
-        model.print_sample_performance()
+        mll = model.print_sample_performance()
         accuracy = sample_performance_acc(model)
         print("Model accuracy:", accuracy)
+        result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 
     if i % 10000 == 0:
         model.save(flags.out)
@@ -156,7 +160,14 @@ def measure_accuracy(model):
         correct += (prediction == Y).sum()
     return correct / Ytest.shape[0]
 
+def save_result(result_df, save_dir):
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, 'metrics') + 'result.csv'
+    result_df.to_csv(save_path, index=False)
+
+
 model.save(flags.out)
+save_result(result_df, flags.out)
 
 accuracy = measure_accuracy(model)
 print("Model accuracy:", accuracy)
