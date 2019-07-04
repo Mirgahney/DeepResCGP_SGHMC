@@ -147,11 +147,16 @@ for i in tdqm(
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
         accuracy = sample_performance_acc(model)
-        print("Model accuracy:", accuracy)
+        print(" Model accuracy:", accuracy)
         result_df = result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 
     if i % 10000 == 0:
         model.save(flags.out)
+
+# append the final accuracy
+accuracy = sample_performance_acc(model)
+mll = model.print_sample_performance()
+result_df = result_df.append({'step': flags.iterations, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 
 POSTERIOR_SAMPLES = 25
 model.collect_samples(POSTERIOR_SAMPLES, 200)
@@ -178,8 +183,7 @@ def save_result(result_df, save_dir):
 model.save(flags.out)
 
 accuracy = measure_accuracy(model)
-print("Model accuracy:", accuracy)
+print("Model Test accuracy:", accuracy)
 
-mll = model.print_sample_performance()
 result_df = result_df.append({'step': flags.iterations, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 save_result(result_df, flags.out)
