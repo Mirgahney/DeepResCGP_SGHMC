@@ -146,7 +146,7 @@ for i in tdqm(
     if i % 500 == 1:
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
-        accuracy = 0 #sample_performance_acc(model)
+        accuracy = sample_performance_acc(model)
         print("Model accuracy:", accuracy)
         result_df = result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 
@@ -154,7 +154,7 @@ for i in tdqm(
         model.save(flags.out)
 
 POSTERIOR_SAMPLES = 25
-# model.collect_samples(POSTERIOR_SAMPLES, 200)
+model.collect_samples(POSTERIOR_SAMPLES, 200)
 
 def measure_accuracy(model):
     batch_size = 32
@@ -171,15 +171,13 @@ def measure_accuracy(model):
 
 def save_result(result_df, save_dir):
     os.makedirs(save_dir, exist_ok=True)
-    print(save_dir)
-    save_path = os.path.join(save_dir, 'metrics') + 'result.csv'
-    print(save_path)
+    save_path = os.path.join(save_dir, 'metrics') + '.csv'
     result_df.to_csv(save_path, index=False)
 
 
 model.save(flags.out)
 
-accuracy = 0 #measure_accuracy(model)
+accuracy = measure_accuracy(model)
 print("Model accuracy:", accuracy)
 
 mll = model.print_sample_performance()

@@ -134,7 +134,7 @@ class BaseModel(object):
 
         mll = np.mean(self.session.run((self.log_likelihood), feed_dict=feed_dict), 0)
         print(' Training MLL of a sample: {}'.format(mll.item()))
-        return mll
+        return mll.item()
 
     def _collect_cacheable_params(self):
         params = [layer.cacheable_params() for layer in self.layers]
