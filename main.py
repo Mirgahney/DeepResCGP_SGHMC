@@ -183,5 +183,5 @@ accuracy = 0 #measure_accuracy(model)
 print("Model accuracy:", accuracy)
 
 mll = model.print_sample_performance()
-result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
+result_df.append({'step': flags.iterations, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
 save_result(result_df, flags.out)
