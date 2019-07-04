@@ -171,7 +171,9 @@ def measure_accuracy(model):
 
 def save_result(result_df, save_dir):
     os.makedirs(save_dir, exist_ok=True)
+    print(save_dir)
     save_path = os.path.join(save_dir, 'metrics') + 'result.csv'
+    print(save_path)
     result_df.to_csv(save_path, index=False)
 
 
