@@ -24,7 +24,7 @@ parser.add_argument('--cifar', action='store_true')
 parser.add_argument('--layers', default=3, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
-parser.add_argument('out', default='results', type=str)
+parser.add_argument('--out', default='results', type=str)
 
 flags = parser.parse_args()
 
