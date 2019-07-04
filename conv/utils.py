@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn import cluster
+from tqdm import tqdm
 
 def _sample_patches(HW_image, N, patch_size, patch_length):
     out = np.zeros((N, patch_length))
@@ -30,3 +31,12 @@ def cluster_patches(NHWC_X, M, patch_size):
     k_means = cluster.KMeans(n_clusters=M, n_jobs=-1)
     k_means.fit(patches)
     return k_means.cluster_centers_
+
+class TqdmExtraFormat(tqdm):
+    """Provides a `total_time` format parameter"""
+    @property
+    def format_dict(self):
+        d = super(TqdmExtraFormat, self).format_dict
+        total_time = d["elapsed"] * (d["total"] or 0) / max(d["n"], 1)
+        d.update(total_time=self.format_interval(total_time) + " in total")
+        return d

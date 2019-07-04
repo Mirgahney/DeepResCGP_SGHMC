@@ -1,5 +1,5 @@
 import numpy as np
-import pandas
+import pandas as pd
 from sklearn import cluster
 import tensorflow as tf
 
@@ -116,7 +116,11 @@ if flags.load is not None:
 # create a data frame to save intermediate resulr
 result_df = pd.DataFrame(columns=['step', 'mll', 'accuracy'])
 
-for i in range(flags.iterations):
+tdqm = conv_utils.TqdmExtraFormat
+
+for i in tdqm(
+      range(flags.iterations), ascii=" .oO0",
+      bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
     model.sghmc_step()
     model.train_hypers()
     print("Iteration", i, end='\r')
