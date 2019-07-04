@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from sklearn import cluster
@@ -175,8 +176,10 @@ def save_result(result_df, save_dir):
 
 
 model.save(flags.out)
-save_result(result_df, flags.out)
 
 accuracy = measure_accuracy(model)
 print("Model accuracy:", accuracy)
 
+mll = model.print_sample_performance()
+result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
+save_result(result_df, flags.out)
