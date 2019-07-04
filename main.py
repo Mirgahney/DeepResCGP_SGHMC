@@ -154,7 +154,7 @@ for i in tdqm(
         model.save(flags.out)
 
 POSTERIOR_SAMPLES = 25
-model.collect_samples(POSTERIOR_SAMPLES, 200)
+# model.collect_samples(POSTERIOR_SAMPLES, 200)
 
 def measure_accuracy(model):
     batch_size = 32
