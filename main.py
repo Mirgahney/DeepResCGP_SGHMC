@@ -113,7 +113,10 @@ if flags.load is not None:
     checkpoint = tf.train.latest_checkpoint(flags.load)
     model._saver.restore(model.session, checkpoint)
 
+POSTERIOR_SAMPLES = 25
+
 def sample_performance_acc(model):
+    model.collect_samples(POSTERIOR_SAMPLES, 200)
     X_batch, Y_batch = model.get_minibatch()
     batch_size = 32
     batches = X_batch.shape[0] // batch_size
@@ -149,7 +152,6 @@ for i in tdqm(
     if i % 10000 == 0:
         model.save(flags.out)
 
-POSTERIOR_SAMPLES = 25
 model.collect_samples(POSTERIOR_SAMPLES, 200)
 
 def measure_accuracy(model):
