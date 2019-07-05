@@ -132,7 +132,7 @@ def sample_performance_acc(model):
     return correct / Y_batch.shape[0]
 
 # create a data frame to save intermediate resulr
-result_df = pd.DataFrame(columns=['step', 'mll', 'accuracy'])
+result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 
 # progress bar information
 tdqm = conv_utils.TqdmExtraFormat
@@ -146,17 +146,17 @@ for i in tdqm(
     if i % 500 == 1:
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
-        accuracy = sample_performance_acc(model)
-        print(" Model accuracy:", accuracy)
-        result_df = result_df.append({'step': i, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
+        #accuracy = sample_performance_acc(model)
+        #print(" Model accuracy:", accuracy)
+        result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
 
     if i % 10000 == 0:
         model.save(flags.out)
 
 # append the final accuracy
-accuracy = sample_performance_acc(model)
+# accuracy = sample_performance_acc(model)
 mll = model.print_sample_performance()
-result_df = result_df.append({'step': flags.iterations, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
+result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 
 POSTERIOR_SAMPLES = 25
 model.collect_samples(POSTERIOR_SAMPLES, 200)
@@ -185,5 +185,5 @@ model.save(flags.out)
 accuracy = measure_accuracy(model)
 print("Model Test accuracy:", accuracy)
 
-result_df = result_df.append({'step': flags.iterations, 'mll': mll, 'accuracy': accuracy}, ignore_index=True)
+result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
