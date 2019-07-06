@@ -152,7 +152,7 @@ result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 
 # progress bar information
 tdqm = conv_utils.TqdmExtraFormat
-mml_max = -np.inf
+mll_max = -np.inf
 accuracy_list = []
 
 for i in tdqm(
@@ -203,7 +203,7 @@ accuracy = measure_accuracy(model)
 best_acc_ind = 35 + np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
-print(f"Model Best Test accuracy: {np.max(accuracy_list)} got at Step: {best_acc_ind} with mll: {result_df.iloc[best_acc_ind][1]}")
+print(f"Model Best Test accuracy: {np.max(accuracy_list)} got at Step: {best_acc_ind} with mll: {mll_max}")
 
 result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
