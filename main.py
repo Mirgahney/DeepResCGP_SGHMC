@@ -170,8 +170,8 @@ for i in tdqm(
                 accuracy = measure_accuracy(model)
                 mll_max = mll
 
-                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_list[-1], mll_max))
-                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy))
+                print('MLL increased ({:.6f} --> {:.7f}). Updating values ....'.format(mll_list[-1], mll_max))
+                print('Update accuracy ({:.6f} --> {:.4f}). Updating values ....'.format(accuracy_list[-1], accuracy))
 
                 accuracy_list.append(accuracy)
                 mll_list.append(mll)                
@@ -205,7 +205,7 @@ accuracy = measure_accuracy(model)
 acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
-print(f"Model Best Test accuracy: {np.max(accuracy_list)} got with mll: {mll_list[acc_ind]}")
+print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list[acc_ind]))
 
 result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
