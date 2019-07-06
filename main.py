@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from collections import deque
 from sklearn import cluster
 import tensorflow as tf
 
@@ -155,6 +156,7 @@ tdqm = conv_utils.TqdmExtraFormat
 mll_max = -np.inf
 accuracy_list = [0]
 mll_list = [mll_max]
+best_model_que = deque([model, model, model])
 
 for i in tdqm(
       range(flags.iterations), ascii=" .oO0",
@@ -167,16 +169,18 @@ for i in tdqm(
         mll = model.print_sample_performance()
         if i >= 17500:
             if np.round(mll - mll_max, decimals = 5) > 0:
-                accuracy = measure_accuracy(model)
+                # accuracy = measure_accuracy(model)
                 mll_max = mll
 
                 print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_list[-1], mll_max))
-                print('Update accuracy ({:.4f} --> {:.4f}). Updating values ....'.format(accuracy_list[-1], accuracy))
+                # print('Update accuracy ({:.4f} --> {:.4f}). Updating values ....'.format(accuracy_list[-1], accuracy))
 
-                accuracy_list.append(accuracy)
+                # accuracy_list.append(accuracy)
                 mll_list.append(mll)
+                best_model_que.append(model) # append best model so far
+                best_model_que.popleft(); # remove worst model so far
 
-                model_name = str(i) + '_' + str(accuracy) + '_' + str(mll)
+                model_name = str(i) + '_' + str(mll)#str(accuracy) + '_' + str(mll)
                 model.save(flags.out, name = model_name)                
 
         result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
@@ -205,14 +209,19 @@ def save_result(result_df, save_dir, name = None):
 model.save(flags.out)
 
 accuracy = measure_accuracy(model)
+# loop over model
+for m in best_model_que:
+    acc = measure_accuracy(m)
+    accuracy_list.append(acc)
+
 acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
-print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list[acc_ind]))
+print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list[-3:][acc_ind]))
 
 result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
 
 acc_mll_df = pd.DataFrame(accuracy_list, columns=['accuracy'])
-acc_mll_df['mll'] = mll_list
+acc_mll_df['mll'] = mll_list[-3:]
 save_result(acc_mll_df, flags.out, name = '_mll_accuracy')
