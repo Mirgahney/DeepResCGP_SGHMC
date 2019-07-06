@@ -154,6 +154,7 @@ result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 tdqm = conv_utils.TqdmExtraFormat
 mll_max = -np.inf
 accuracy_list = [0]
+mll_list = [mll_max]
 
 for i in tdqm(
       range(flags.iterations), ascii=" .oO0",
@@ -167,12 +168,13 @@ for i in tdqm(
         if i >= 500:
             if mll > mll_max:
                 accuracy = 0#measure_accuracy(model)
-
-                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_max, mll))
-                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy))
-                
-                accuracy_list.append(accuracy)
                 mll_max = mll
+
+                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_list[-1], mll_max))
+                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy))
+
+                accuracy_list.append(accuracy)
+                mll_list.append(mll)                
 
         result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
 
@@ -200,11 +202,14 @@ def save_result(result_df, save_dir, name = None):
 model.save(flags.out)
 
 accuracy = measure_accuracy(model)
-best_acc_ind = 35 + np.argmax(accuracy_list)
+acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
-print(f"Model Best Test accuracy: {np.max(accuracy_list)} got at Step: {best_acc_ind} with mll: {mll_max}")
+print(f"Model Best Test accuracy: {np.max(accuracy_list)} got with mll: {mll_list[acc_ind]}")
 
 result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
-save_result(pd.DataFrame(accuracy_list, columns=['accuracy']), flags.out, name = '_accuracy')
+
+acc_mll_df = pd.DataFrame(accuracy_list, columns=['accuracy'])
+acc_mll_df['mll'] = mll_list
+save_result(acc_mll_df, flags.out, name = '_mll_accuracy')
