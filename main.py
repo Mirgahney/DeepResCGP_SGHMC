@@ -164,7 +164,7 @@ for i in tdqm(
     if i % 500 == 1:
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
-        if i >= 17500:
+        if i >= 500:
             if mll > mll_max:
                 accuracy = 0#measure_accuracy(model)
 
