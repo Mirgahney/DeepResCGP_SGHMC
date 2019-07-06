@@ -201,7 +201,7 @@ def save_result(result_df, save_dir, name = None):
 
 model.save(flags.out)
 
-accuracy = measure_accuracy(model)
+accuracy = 0#measure_accuracy(model)
 acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
