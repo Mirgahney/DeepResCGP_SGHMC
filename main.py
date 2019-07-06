@@ -153,7 +153,7 @@ result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 # progress bar information
 tdqm = conv_utils.TqdmExtraFormat
 mll_max = -np.inf
-accuracy_list = []
+accuracy_list = [0]
 
 for i in tdqm(
       range(flags.iterations), ascii=" .oO0",
