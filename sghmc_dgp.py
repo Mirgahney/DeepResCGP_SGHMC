@@ -89,6 +89,7 @@ class DGP(BaseModel):
             name = '_' + name
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, 'model') + name
+        print('Saving model ....')
         self._saver.save(self.session, save_path)
 
     def propagate(self, X):
