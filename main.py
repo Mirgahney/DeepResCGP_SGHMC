@@ -165,9 +165,9 @@ for i in tdqm(
     if i % 500 == 1:
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
-        if i >= 500:
+        if i >= 17500:
             if mll > mll_max:
-                accuracy = 0#measure_accuracy(model)
+                accuracy = measure_accuracy(model)
                 mll_max = mll
 
                 print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_list[-1], mll_max))
@@ -201,7 +201,7 @@ def save_result(result_df, save_dir, name = None):
 
 model.save(flags.out)
 
-accuracy = 0#measure_accuracy(model)
+accuracy = measure_accuracy(model)
 acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
