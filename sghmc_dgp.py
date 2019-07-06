@@ -82,9 +82,13 @@ class DGP(BaseModel):
         self._saver = tf.train.Saver(
                 var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
 
-    def save(self, save_dir):
+    def save(self, save_dir, name = None):
+        if name is None:
+            name = ''
+        else:
+            name = '_' + name
         os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, 'model')
+        save_path = os.path.join(save_dir, 'model') + name
         self._saver.save(self.session, save_path)
 
     def propagate(self, X):

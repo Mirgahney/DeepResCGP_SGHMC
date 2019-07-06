@@ -174,12 +174,15 @@ for i in tdqm(
                 print('Update accuracy ({:.6f} --> {:.4f}). Updating values ....'.format(accuracy_list[-1], accuracy))
 
                 accuracy_list.append(accuracy)
-                mll_list.append(mll)                
+                mll_list.append(mll)
+
+                model_name = str(i) + '_' + str(accuracy) + '_' str(mll)
+                model.save(flags.out, name = model_name)                
 
         result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
 
     if i % 10000 == 0:
-        model.save(flags.out)
+        model.save(flags.out, name = str(i))
 
 # append the final accuracy
 # accuracy = sample_performance_acc(model)
