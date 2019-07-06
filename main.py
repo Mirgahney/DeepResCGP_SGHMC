@@ -131,37 +131,10 @@ def sample_performance_acc(model):
         correct += (prediction == Y).sum()
     return correct / Y_batch.shape[0]
 
-# create a data frame to save intermediate resulr
-result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
-
-# progress bar information
-tdqm = conv_utils.TqdmExtraFormat
-
-for i in tdqm(
-      range(flags.iterations), ascii=" .oO0",
-      bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
-    model.sghmc_step()
-    model.train_hypers()
-    print("Iteration", i, end='\r')
-    if i % 500 == 1:
-        print("Iteration {}".format(i))
-        mll = model.print_sample_performance()
-        #accuracy = sample_performance_acc(model)
-        #print(" Model accuracy:", accuracy)
-        result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
-
-    if i % 10000 == 0:
-        model.save(flags.out)
-
-# append the final accuracy
-# accuracy = sample_performance_acc(model)
-mll = model.print_sample_performance()
-result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
-
 POSTERIOR_SAMPLES = 25
-model.collect_samples(POSTERIOR_SAMPLES, 200)
 
 def measure_accuracy(model):
+    model.collect_samples(POSTERIOR_SAMPLES, 200)
     batch_size = 32
     batches = Xtest.shape[0] // batch_size
     correct = 0
@@ -174,16 +147,64 @@ def measure_accuracy(model):
         correct += (prediction == Y).sum()
     return correct / Ytest.shape[0]
 
-def save_result(result_df, save_dir):
+# create a data frame to save intermediate resulr
+result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
+
+# progress bar information
+tdqm = conv_utils.TqdmExtraFormat
+mml_max = -np.inf
+accuracy_list = []
+
+for i in tdqm(
+      range(flags.iterations), ascii=" .oO0",
+      bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
+    model.sghmc_step()
+    model.train_hypers()
+    print("Iteration", i, end='\r')
+    if i % 500 == 1:
+        print("Iteration {}".format(i))
+        mll = model.print_sample_performance()
+        if i >= 17500:
+            if mll > mll_max:
+                accuracy = 0#measure_accuracy(model)
+
+                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_max, mll)))
+                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy)))
+                
+                accuracy_list.append(accuracy)
+                mll_max = mll
+
+        result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
+
+    if i % 10000 == 0:
+        model.save(flags.out)
+
+# append the final accuracy
+# accuracy = sample_performance_acc(model)
+mll = model.print_sample_performance()
+result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
+
+
+def save_result(result_df, save_dir, name = None):
+    # add file extention
+    if name is None:
+        name = '.csv'
+    else:
+        name = name + '.csv'
+
     os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, 'metrics') + '.csv'
+    save_path = os.path.join(save_dir, 'metrics') + name
     result_df.to_csv(save_path, index=False)
 
 
 model.save(flags.out)
 
 accuracy = measure_accuracy(model)
+best_acc_ind = 35 + np.argmax(accuracy_list)
+
 print("Model Test accuracy:", accuracy)
+print(f"Model Best Test accuracy: {np.max(accuracy_list)} got at Step: {best_acc_ind} with mll: {result_df.iloc[best_acc_ind][1]}")
 
 result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 save_result(result_df, flags.out)
+save_result(pd.DataFrame(accuracy_list, columns=['accuracy']), flags.out, name = '_accuracy')
