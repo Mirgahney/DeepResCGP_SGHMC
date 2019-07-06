@@ -165,7 +165,7 @@ for i in tdqm(
     if i % 500 == 1:
         print("Iteration {}".format(i))
         mll = model.print_sample_performance()
-        if i >= 17500:
+        if i >= 500:
             if mll > mll_max:
                 accuracy = measure_accuracy(model)
                 mll_max = mll
@@ -176,7 +176,7 @@ for i in tdqm(
                 accuracy_list.append(accuracy)
                 mll_list.append(mll)
 
-                model_name = str(i) + '_' + str(accuracy) + '_' str(mll)
+                model_name = str(i) + '_' + str(accuracy) + '_' + str(mll)
                 model.save(flags.out, name = model_name)                
 
         result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
