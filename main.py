@@ -168,8 +168,8 @@ for i in tdqm(
             if mll > mll_max:
                 accuracy = 0#measure_accuracy(model)
 
-                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_max, mll)))
-                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy)))
+                print('MLL increased ({:.6f} --> {:.6f}). Updating values ....'.format(mll_max, mll))
+                print('Update accuracy ({:.6f} --> {:.6f}). Updating values ....'.format(accuracy_list[-1], accuracy))
                 
                 accuracy_list.append(accuracy)
                 mll_max = mll
