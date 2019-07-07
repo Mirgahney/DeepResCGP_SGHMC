@@ -154,7 +154,7 @@ result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 # progress bar information
 tdqm = conv_utils.TqdmExtraFormat
 mll_max = -np.inf
-accuracy_list = [0]
+accuracy_list = []
 mll_list = [mll_max, mll_max, mll_max]
 best_model_que = deque([model, model, model])
 
