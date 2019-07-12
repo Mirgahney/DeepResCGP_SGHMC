@@ -8,7 +8,7 @@ parser.add_argument('--mll', default=0.0, type=float)
 flags = parser.parse_args()
 
 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-server.login("mmerghaney@aimsammi.org", "M@r@AMMI01")
+server.login("", "")
 msg = '''\
 Subject: ResConvGP model training
         
