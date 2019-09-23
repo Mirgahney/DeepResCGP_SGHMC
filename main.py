@@ -20,8 +20,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--feature_maps', default=10, type=int)
 parser.add_argument('-M', default=64, type=int)
 parser.add_argument('--batch-size', default=128, type=int)
-parser.add_argument('--iterations', default=35000, type=int)
-parser.add_argument('--cifar', action='store_true')
+parser.add_argument('--iterations', default=100000, type=int)
+parser.add_argument('--dataset', default = "mnist" action='str')
 parser.add_argument('--layers', default=3, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
@@ -30,7 +30,7 @@ parser.add_argument('--out', default='results', type=str)
 flags = parser.parse_args()
 
 def load_data():
-    if flags.cifar:
+    if flags.dataset == "cifar":
         (Xtrain, Ytrain), (Xtest, Ytest) = observations.cifar10('/tmp/cifar')
         Xtrain = np.transpose(Xtrain, [0, 2, 3, 1])
         Xtest = np.transpose(Xtest, [0, 2, 3, 1])
@@ -38,6 +38,16 @@ def load_data():
         std = Xtrain.std((0, 1, 2))
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
+        
+    elif flags.dataset == "fashion_mnist":
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/tmp/fashion_mnist')
+        mean = Xtrain.mean(axis=0)
+        std = Xtrain.std()
+        Xtrain = (Xtrain - mean) / std
+        Xtest = (Xtest - mean) / std
+        Xtrain = Xtrain.reshape(-1, 28, 28, 1)
+        Xtest = Xtest.reshape(-1, 28, 28, 1)
+        
     else:
         (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/tmp/mnist')
         mean = Xtrain.mean(axis=0)
