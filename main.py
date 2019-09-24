@@ -225,7 +225,16 @@ class ResCGPNet():
 
                 layers += layers_block
 
-        return layers, input_size
+            return layers, input_size
+    
+    def get_model():     
+        return model = DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
+                        Ytrain.reshape(Ytrain.shape[0], 1),
+                        layers=Reslayers,
+                        likelihood=MultiClass(10),
+                        minibatch_size=flags.batch_size,
+                        window_size=100,
+                        adam_lr=flags.lr)
 
 
 if flags.load is not None:
