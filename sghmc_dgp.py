@@ -101,6 +101,7 @@ class DGP(BaseModel):
                 print('Acces residual layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
                 mean += Fs[-1]
+                var += Fvars[-1] + layer.kernel.Kzx(layer.Z, Fs[-1]) # variance update 
 
             else:
                 mean, var = layer.conditional(Fs[-1])
