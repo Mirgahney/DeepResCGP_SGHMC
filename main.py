@@ -170,6 +170,18 @@ class ResCGPNet():
             Z = Z_inner
         
         filter_size = filters[layer]
+        Reslayers = []
+
+        # current impelemtation with fixed output feature maps for all alyers to user inputed argument 10 
+        # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
+
+        base_kernel = kernels.SquaredExponential(input_dim=7*7*input_size[2], lengthscales=2.0)
+        layer = ConvLayer(input_size, patch_size=7, stride=2, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=3, ltype ='Plain') # change stride 2-> 1 for cifar-10
+        input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+        Reslayers.append(layer)
+
+        #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
+        
 
 
 if flags.load is not None:
