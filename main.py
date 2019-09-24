@@ -120,6 +120,27 @@ model = DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
         window_size=100,
         adam_lr=flags.lr)
 
+def Basic_Block(input_size, inplanes = None, planes = None, stride = 1, downsample = None):
+    expansion = 1
+    __constants__ = ['downsample']
+
+    layers = []
+
+    if downsample is not None:
+        layers(downsample)
+
+    base_kernel = kernels.SquaredExponential(input_dim=3*3*input_size[2], lengthscales=2.0)
+    layer = ConvLayer(input_size, patch_size=3, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='SAME', ltype ='Residua-1')
+    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+    layers.append(layer)
+
+    base_kernel = kernels.SquaredExponential(input_dim=3*3*input_size[2], lengthscales=2.0)
+    layer = ConvLayer(input_size, patch_size=3, stride=1, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='SAME', ltype ='Residual-2')
+    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+    layers.append(layer)
+
+    return layers, input_size
+
 if flags.load is not None:
     print("Loading parameters")
     checkpoint = tf.train.latest_checkpoint(flags.load)
