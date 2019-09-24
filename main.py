@@ -182,6 +182,17 @@ class ResCGPNet():
 
         #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
         
+        layers, input_size = self._make_layer(input_size, block, 64, layers[0])
+        Reslayers += layer
+        layers, input_size = self._make_layer(input_size, block, 128, layers[1], stride=2,
+                                       dilate=replace_stride_with_dilation[0])
+        Reslayers += layer
+        layers, input_size = self._make_layer(input_size, block, 256, layers[2], stride=2,
+                                       dilate=replace_stride_with_dilation[1])
+        Reslayers += layer
+        layers, input_size = self._make_layer(input_size, block, 512, layers[3], stride=2,
+                                       dilate=replace_stride_with_dilation[2])
+        Reslayers += layer
 
 
 if flags.load is not None:
