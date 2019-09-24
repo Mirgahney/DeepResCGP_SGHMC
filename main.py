@@ -227,8 +227,8 @@ class ResCGPNet():
 
             return layers, input_size
     
-    def get_model():     
-        return model = DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
+    def get_model():
+        return DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
                         Ytrain.reshape(Ytrain.shape[0], 1),
                         layers=Reslayers,
                         likelihood=MultiClass(10),
