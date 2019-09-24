@@ -199,6 +199,33 @@ class ResCGPNet():
         conv_kernel = ConvKernel(rbf, patch_extractor)
         layer = Layer(conv_kernel, num_classes, Z)
         Reslayers.append(layer)
+        
+        def _make_layer(self, input_size, block, planes, blocks, stride=1, dilate=False):
+            norm_layer = self._norm_layer
+            downsample = None
+            previous_dilation = self.dilation
+            if dilate:
+                self.dilation *= stride
+                stride = 1
+            if stride != 1 or self.inplanes != planes * block.expansion:
+
+                base_kernel = kernels.SquaredExponential(input_dim=1*1*input_size[2], lengthscales=2.0)
+                downsample = ConvLayer(input_size, patch_size=1, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='VALID', ltype ='downsample')
+                input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+
+            layers = []
+
+            layers_block, input_size = block(input_size, self.inplanes, planes, stride, downsample)
+
+            layers.append(layers_block)
+
+            self.inplanes = planes * block.expansion
+            for _ in range(1, blocks):
+                layers_block, input_size = block(input_size, self.inplanes, planes, stride, downsample)
+
+                layers += layers_block
+
+        return layers, input_size
 
 
 if flags.load is not None:
