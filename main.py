@@ -355,4 +355,4 @@ acc_mll_df['mll'] = mll_list[-3:]
 save_result(acc_mll_df, flags.out, name = '_mll_accuracy')
 
 # send finish email
-os.system('python3 SendEmail.py --acc {:.4f} --mll {:.5f}'.format(np.max(accuracy_list), mll_list[-3:][acc_ind]))
+#os.system('python3 SendEmail.py --acc {:.4f} --mll {:.5f}'.format(np.max(accuracy_list), mll_list[-3:][acc_ind]))
