@@ -120,7 +120,7 @@ model = DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
         window_size=100,
         adam_lr=flags.lr)
 
-def Basic_Block(input_size, inplanes = None, planes = None, stride = 1, downsample = None):
+def Basic_Block(input_size, inplanes = None, planes = 10, stride = 1, downsample = None):
     expansion = 1
     __constants__ = ['downsample']
 
@@ -130,13 +130,13 @@ def Basic_Block(input_size, inplanes = None, planes = None, stride = 1, downsamp
         layers(downsample)
 
     base_kernel = kernels.SquaredExponential(input_dim=3*3*input_size[2], lengthscales=2.0)
-    layer = ConvLayer(input_size, patch_size=3, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='SAME', ltype ='Residua-1')
-    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+    layer = ConvLayer(input_size, patch_size=3, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=planes, pad='SAME', ltype ='Residua-1')
+    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, planes)
     layers.append(layer)
 
     base_kernel = kernels.SquaredExponential(input_dim=3*3*input_size[2], lengthscales=2.0)
-    layer = ConvLayer(input_size, patch_size=3, stride=1, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='SAME', ltype ='Residual-2')
-    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+    layer = ConvLayer(input_size, patch_size=3, stride=1, base_kernel=base_kernel, Z=Z, feature_maps_out=planes, pad='SAME', ltype ='Residual-2')
+    input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, planes)
     layers.append(layer)
 
     return layers, input_size
@@ -152,7 +152,7 @@ class ResCGPNet():
         
         self._norm_layer = norm_layer
 
-        self.inplanes = 64
+        self.inplanes = 8
         self.dilation = 1
         if replace_stride_with_dilation is None:
             # each element in the tuple indicates if we should replace
@@ -176,26 +176,26 @@ class ResCGPNet():
         # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
 
         base_kernel = kernels.SquaredExponential(input_dim=7*7*input_size[2], lengthscales=2.0)
-        layer = ConvLayer(input_size, patch_size=7, stride=2, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad=3, ltype ='Plain') # change stride 2-> 1 for cifar-10
-        input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+        layer = ConvLayer(input_size, patch_size=7, stride=2, base_kernel=base_kernel, Z=Z, feature_maps_out=self.inplanes, pad=3, ltype ='Plain') # change stride 2-> 1 for cifar-10
+        input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, self.inplanes)
         Reslayers.append(layer)
 
         #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
         
-        layers, input_size = self._make_layer(input_size, block, 64, layers[0])
+        layers, input_size = self._make_layer(input_size, block, 8, layers[0])
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 128, layers[1], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 16, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 256, layers[2], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 32, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 512, layers[3], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 64, layers[3], stride=2,
                                        dilate=replace_stride_with_dilation[2])
         Reslayers += layer
         
         rbf = kernels.SquaredExponential(input_dim=input_size[0]*input_size[1]*flags.feature_maps, lengthscales=2.0) # filter_size is equal to all input size to memic the Linear layer
-        patch_extractor = PatchExtractor(input_size, filter_size=input_size[0], feature_maps=10, stride=stride)
+        patch_extractor = PatchExtractor(input_size, filter_size=input_size[0], feature_maps=num_classes, stride=stride)
         conv_kernel = ConvKernel(rbf, patch_extractor)
         layer = Layer(conv_kernel, num_classes, Z)
         Reslayers.append(layer)
@@ -207,7 +207,7 @@ class ResCGPNet():
             if dilate:
                 self.dilation *= stride
                 stride = 1
-            if stride != 1 or self.inplanes != planes * block.expansion:
+            if stride != 1 or self.inplanes != planes * 1: #block.expansion: stop expnation for now and set it to 1
 
                 base_kernel = kernels.SquaredExponential(input_dim=1*1*input_size[2], lengthscales=2.0)
                 downsample = ConvLayer(input_size, patch_size=1, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='VALID', ltype ='downsample')
