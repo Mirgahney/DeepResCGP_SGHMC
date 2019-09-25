@@ -102,8 +102,8 @@ class DGP(BaseModel):
                 mean, var = layer.conditional(Fs[-1])
                 mean += Fs[-1]
                 #var += Fvars[-1] + layer.kernel.Kzx(layer.Z, Fs[-1]) # variance update
-                k_fx = self.kernel.K(F,Fs[-1])
-                var = var + Fvars[-1] + k_fx + k_fx.T
+                #k_fx = self.kernel.K(F,Fs[-1])
+                #var = var + Fvars[-1] + k_fx + k_fx.T
 
             else:
                 mean, var = layer.conditional(Fs[-1])
