@@ -26,6 +26,7 @@ parser.add_argument('--layers', default=3, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
 parser.add_argument('--out', default='results', type=str)
+parser.add_argument('--arch', default='plain', type=str)
 
 flags = parser.parse_args()
 
@@ -145,7 +146,7 @@ class ResCGPNet():
     def __init__(self, block, layers, num_classes=1000, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
                  norm_layer=None):
-        super(ResNet, self).__init__()
+        super(ResCGPNet, self).__init__()
         
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
@@ -236,7 +237,9 @@ class ResCGPNet():
                         window_size=100,
                         adam_lr=flags.lr)
 
-
+if flags.arch == 'ResNet':
+    model = ResCGPNet(Basic_Block,[2,2,2,2],num_classes=10).get_model()
+    
 if flags.load is not None:
     print("Loading parameters")
     checkpoint = tf.train.latest_checkpoint(flags.load)
