@@ -164,15 +164,8 @@ class ResCGPNet():
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
-
-        if layer == 0:
-            Z = patches
-        else:
-            Z = Z_inner
         
-        filter_size = filters[layer]
         Reslayers = []
-
         # current impelemtation with fixed output feature maps for all alyers to user inputed argument 10 
         # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
         Z = patches
