@@ -121,7 +121,7 @@ model = DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
         window_size=100,
         adam_lr=flags.lr)
 
-def Basic_Block(input_size, inplanes = None, planes = 10, stride = 1, downsample = None):
+def Basic_Block(input_size, inplanes = None, planes = 10, stride = 1, Z=None, downsample = None):
     expansion = 1
     __constants__ = ['downsample']
 
@@ -148,8 +148,8 @@ class ResCGPNet():
                  norm_layer=None):
         super(ResCGPNet, self).__init__()
         
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+#         if norm_layer is None:
+#             norm_layer = nn.BatchNorm2d
         
         self._norm_layer = norm_layer
 
@@ -175,23 +175,23 @@ class ResCGPNet():
 
         # current impelemtation with fixed output feature maps for all alyers to user inputed argument 10 
         # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
-
+        Z = patches
         base_kernel = kernels.SquaredExponential(input_dim=7*7*input_size[2], lengthscales=2.0)
         layer = ConvLayer(input_size, patch_size=7, stride=2, base_kernel=base_kernel, Z=Z, feature_maps_out=self.inplanes, pad=3, ltype ='Plain') # change stride 2-> 1 for cifar-10
         input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, self.inplanes)
         Reslayers.append(layer)
 
         #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
-        
-        layers, input_size = self._make_layer(input_size, block, 8, layers[0])
+        Z = Z_inner
+        layers, input_size = self._make_layer(input_size, block, 8, layers[0], Z)
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 16, layers[1], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 16, layers[1], Z, stride=2,
                                        dilate=replace_stride_with_dilation[0])
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 32, layers[2], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 32, layers[2], Z, stride=2,
                                        dilate=replace_stride_with_dilation[1])
         Reslayers += layer
-        layers, input_size = self._make_layer(input_size, block, 64, layers[3], stride=2,
+        layers, input_size = self._make_layer(input_size, block, 64, layers[3],Z,  stride=2,
                                        dilate=replace_stride_with_dilation[2])
         Reslayers += layer
         
@@ -201,7 +201,7 @@ class ResCGPNet():
         layer = Layer(conv_kernel, num_classes, Z)
         Reslayers.append(layer)
         
-        def _make_layer(self, input_size, block, planes, blocks, stride=1, dilate=False):
+        def _make_layer(self, input_size, block, planes, blocks, Z, stride=1, dilate=False):
             norm_layer = self._norm_layer
             downsample = None
             previous_dilation = self.dilation
@@ -216,7 +216,7 @@ class ResCGPNet():
 
             layers = []
 
-            layers_block, input_size = block(input_size, self.inplanes, planes, stride, downsample)
+            layers_block, input_size = block(input_size, self.inplanes, planes, stride, Z, downsample)
 
             layers.append(layers_block)
 
