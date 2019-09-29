@@ -94,17 +94,48 @@ class DGP(BaseModel):
 
     def propagate(self, X):
         Fs = [X, ]
+        Fds = []
         Fmeans, Fvars = [], []
-
+        Fdmeans, Fdvars = [], []
+        downsample = False
+        
         for layer in self.layers:
             if layer.ltype == 'Residual':
                 print('Acces residual layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
-                mean += Fs[-1]
+                mean += Fmeans[-1]
                 #var += Fvars[-1] + layer.kernel.Kzx(layer.Z, Fs[-1]) # variance update
                 #k_fx = self.kernel.K(F,Fs[-1])
                 #var = var + Fvars[-1] + k_fx + k_fx.T
-
+            elif layer.ltype == 'Residua-1':
+                print('Acces residual-1 layer ', layer.ltype)
+                mean, var = layer.conditional(Fs[-1])
+                eps = tf.random_normal(tf.shape(mean), dtype=tf.float64)
+                F = mean + eps * tf.sqrt(var)
+                Fs.append(F)
+                Fmeans.append(mean)
+                Fvars.append(var)
+                
+            elif layer.ltype == 'Residua-2' 
+                print('Acces residual-2 layer ', layer.ltype)
+                mean, var = layer.conditional(Fs[-1])
+                
+                if downsample:
+                    mean += Fdmeans[-1]
+                else:
+                    mean += Fmeans[-2]   
+                downsample = False
+                
+            elif layer.ltype == 'downsample':
+                print('Acces downsample layer ', layer.ltype)
+                downsample = True
+                mean, var = layer.conditional(Fs[-1])
+                eps = tf.random_normal(tf.shape(mean), dtype=tf.float64)
+                F = mean + eps * tf.sqrt(var)
+                Fds.append(F)
+                Fdmeans.append(mean)
+                Fdvars.append(var)
+                
             else:
                 mean, var = layer.conditional(Fs[-1])
             print('meand shape ', mean.shape)
