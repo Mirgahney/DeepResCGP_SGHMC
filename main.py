@@ -194,7 +194,7 @@ class ResCGPNet():
         layer = Layer(conv_kernel, num_classes, Z)
         Reslayers.append(layer)
         
-        def _make_layer(self, input_size, block, planes, blocks, Z, stride=1, dilate=False):
+    def _make_layer(self, input_size, block, planes, blocks, Z, stride=1, dilate=False):
             norm_layer = self._norm_layer
             downsample = None
             previous_dilation = self.dilation
@@ -219,7 +219,7 @@ class ResCGPNet():
 
                 layers += layers_block
 
-            return layers, input_size
+        return layers, input_size
     
     def get_model():
         return DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
