@@ -116,7 +116,7 @@ class DGP(BaseModel):
                 Fmeans.append(mean)
                 Fvars.append(var)
                 
-            elif layer.ltype == 'Residua-2' 
+            elif layer.ltype == 'Residua-2': 
                 print('Acces residual-2 layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
                 
