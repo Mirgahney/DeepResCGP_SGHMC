@@ -128,7 +128,7 @@ def Basic_Block(input_size, inplanes = None, planes = 10, stride = 1, Z=None, do
     layers = []
 
     if downsample is not None:
-        layers.aapend(downsample)
+        layers.append(downsample)
 
     base_kernel = kernels.SquaredExponential(input_dim=3*3*input_size[2], lengthscales=2.0)
     layer = ConvLayer(input_size, patch_size=3, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=planes, pad='SAME', ltype ='Residua-1')
