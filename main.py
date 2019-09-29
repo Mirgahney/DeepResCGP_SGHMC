@@ -213,7 +213,7 @@ class ResCGPNet():
 
         layers.append(layers_block)
 
-        self.inplanes = planes * block.expansion
+        self.inplanes = planes * 1: #block.expansion: stop expnation for now and set it to 1
         
         for _ in range(1, blocks):
             layers_block, input_size = block(input_size, self.inplanes, planes, stride, downsample)
