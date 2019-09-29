@@ -60,13 +60,12 @@ class PatchExtractor(object):
 
     def _padd_with(self):
 
-    	if self.pad == 'SAME':
-    		pad = self.filter_size -2
-            
+        if self.pad == 'SAME':
+            pad = self.filter_size -2   
         elif type(self.pad) == int:
             pad = self.pad
-    	else:
-    		pad = 0
+        else:
+            pad = 0
     	return pad
    
 class MultiOutputConvKernel(object):
