@@ -143,7 +143,7 @@ def Basic_Block(input_size, inplanes = None, planes = 10, stride = 1, Z=None, do
     return layers, input_size
 
 class ResCGPNet():
-    def __init__(self, block, layers, num_classes=1000, zero_init_residual=False,
+    def __init__(self, block, layers, num_classes=1000, input_size=input_size, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,
                  norm_layer=None):
         super(ResCGPNet, self).__init__()
