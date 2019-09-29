@@ -204,8 +204,8 @@ class ResCGPNet():
         if stride != 1 or self.inplanes != planes * 1: #block.expansion: stop expnation for now and set it to 1
 
             base_kernel = kernels.SquaredExponential(input_dim=1*1*input_size[2], lengthscales=2.0)
-            downsample = ConvLayer(input_size, patch_size=1, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=flags.feature_maps, pad='VALID', ltype ='downsample')
-            input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
+            downsample = ConvLayer(input_size, patch_size=1, stride=stride, base_kernel=base_kernel, Z=Z, feature_maps_out=planes, pad='VALID', ltype ='downsample')
+            input_size = (downsample.patch_extractor.out_image_height, downsample.patch_extractor.out_image_width, planes)
 
         layers = []
 
