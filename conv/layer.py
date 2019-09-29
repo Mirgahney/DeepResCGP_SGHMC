@@ -66,7 +66,7 @@ class PatchExtractor(object):
             pad = self.pad
         else:
             pad = 0
-    	return pad
+        return pad
    
 class MultiOutputConvKernel(object):
     def __init__(self, base_kernel, patch_count):
