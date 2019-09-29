@@ -176,17 +176,17 @@ class ResCGPNet():
 
         #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
         Z = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
-        layers, input_size = self._make_layer(input_size, block, 8, layers[0], Z)
-        Reslayers += layers
-        layers, input_size = self._make_layer(input_size, block, 16, layers[1], Z, stride=2,
+        layers_, input_size = self._make_layer(input_size, block, 8, layers[0], Z)
+        Reslayers += layers_
+        layers_, input_size = self._make_layer(input_size, block, 16, layers[1], Z, stride=2,
                                        dilate=replace_stride_with_dilation[0])
-        Reslayers += layers
-        layers, input_size = self._make_layer(input_size, block, 32, layers[2], Z, stride=2,
+        Reslayers += layers_
+        layers_, input_size = self._make_layer(input_size, block, 32, layers[2], Z, stride=2,
                                        dilate=replace_stride_with_dilation[1])
-        Reslayers += layers
-        layers, input_size = self._make_layer(input_size, block, 64, layers[3],Z,  stride=2,
+        Reslayers += layers_
+        layers_, input_size = self._make_layer(input_size, block, 64, layers[3],Z,  stride=2,
                                        dilate=replace_stride_with_dilation[2])
-        Reslayers += layers
+        Reslayers += layers_
         
         rbf = kernels.SquaredExponential(input_dim=input_size[0]*input_size[1]*flags.feature_maps, lengthscales=2.0) # filter_size is equal to all input size to memic the Linear layer
         patch_extractor = PatchExtractor(input_size, filter_size=input_size[0], feature_maps=num_classes, stride=stride)
