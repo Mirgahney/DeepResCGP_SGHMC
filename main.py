@@ -179,7 +179,7 @@ class ResCGPNet():
         Z = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
         layers_, input_size = self._make_layer(input_size, block, 8, layers[0], Z)
         self.Reslayers += layers_
-        set_trace()
+#         set_trace()
         layers_, input_size = self._make_layer(input_size, block, 16, layers[1], Z, stride=2,
                                        dilate=replace_stride_with_dilation[0])
         self.Reslayers += layers_
@@ -195,7 +195,7 @@ class ResCGPNet():
         conv_kernel = ConvKernel(rbf, patch_extractor)
         layer = Layer(conv_kernel, num_classes, Z)
         self.Reslayers.append(layer)
-        set_trace()
+#         set_trace()
     def _make_layer(self, input_size, block, planes, blocks, Z, stride=1, dilate=False):
         norm_layer = self._norm_layer
         downsample = None
@@ -213,7 +213,7 @@ class ResCGPNet():
 
         layers_block, input_size = block(input_size, self.inplanes, planes, stride, Z, downsample)
 
-        layers.append(layers_block)
+        layers += layers_block
 
         self.inplanes = planes * 1 #block.expansion stop expnation for now and set it to 1
         
