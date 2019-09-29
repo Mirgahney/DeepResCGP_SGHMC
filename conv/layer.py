@@ -62,6 +62,7 @@ class PatchExtractor(object):
 
     	if self.pad == 'SAME':
     		pad = self.filter_size -2
+            
         elif type(self.pad) == int:
             pad = self.pad
     	else:
