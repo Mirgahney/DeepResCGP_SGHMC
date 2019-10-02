@@ -71,7 +71,7 @@ def compute_z_inner(X, M, feature_maps_out):
 
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
-    with tf.Session(config=config) as sess:
+    with tf.compat.v1.Session(config=config) as sess:
         filtered = sess.run(convolution)
 
     return conv_utils.cluster_patches(filtered, M, 5)
