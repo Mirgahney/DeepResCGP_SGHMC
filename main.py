@@ -169,27 +169,30 @@ class ResCGPNet():
         self.Reslayers = []
         # current impelemtation with fixed output feature maps for all alyers to user inputed argument 10 
         # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
-        Z = conv_utils.cluster_patches(Xtrain, flags.M, 10)
+        Z = conv_utils.cluster_patches(Xtrain, flags.M, self.inplanes)
         base_kernel = kernels.SquaredExponential(input_dim=7*7*input_size[2], lengthscales=2.0)
         layer = ConvLayer(input_size, patch_size=7, stride=2, base_kernel=base_kernel, Z=Z, feature_maps_out=self.inplanes, pad=3, ltype ='Plain') # change stride 2-> 1 for cifar-10
         input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, self.inplanes)
         self.Reslayers.append(layer)
 
         #self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1) # need to compensate for the pooling calulate the size and adjuest the conGP acoordingly 
-        Z = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
+        Z = compute_z_inner(Xtrain, flags.M, 8)
         layers_, input_size = self._make_layer(input_size, block, 8, layers[0], Z)
         self.Reslayers += layers_
 #         set_trace()
+        Z = compute_z_inner(Xtrain, flags.M, 16)
         layers_, input_size = self._make_layer(input_size, block, 16, layers[1], Z, stride=2,
                                        dilate=replace_stride_with_dilation[0])
         self.Reslayers += layers_
+        Z = compute_z_inner(Xtrain, flags.M, 32)
         layers_, input_size = self._make_layer(input_size, block, 32, layers[2], Z, stride=2,
                                        dilate=replace_stride_with_dilation[1])
         self.Reslayers += layers_
+        Z = compute_z_inner(Xtrain, flags.M, 64)
         layers_, input_size = self._make_layer(input_size, block, 64, layers[3],Z,  stride=2,
                                        dilate=replace_stride_with_dilation[2])
         self.Reslayers += layers_
-        
+#         Z = compute_z_inner(Xtrain, flags.M, 16)
         rbf = kernels.SquaredExponential(input_dim=input_size[0]*input_size[1]*flags.feature_maps, lengthscales=2.0) # filter_size is equal to all input size to memic the Linear layer
         patch_extractor = PatchExtractor(input_size, filter_size=input_size[0], feature_maps=num_classes, stride=stride)
         conv_kernel = ConvKernel(rbf, patch_extractor)
