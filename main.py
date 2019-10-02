@@ -165,7 +165,7 @@ class ResCGPNet():
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
-        
+        input_size = Xtrain.shape[1:]
         self.Reslayers = []
         # current impelemtation with fixed output feature maps for all alyers to user inputed argument 10 
         # need to replace it with self.inplanes but that requirs artucheture search which isn't valid for now
