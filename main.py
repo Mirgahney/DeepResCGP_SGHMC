@@ -69,7 +69,7 @@ def compute_z_inner(X, M, feature_maps_out):
             [1, 2, 2, 1],
             "VALID")
 
-    config = tf.ConfigProto()
+    config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     with tf.Session(config=config) as sess:
         filtered = sess.run(convolution)
