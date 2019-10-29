@@ -246,7 +246,7 @@ class Matern12(Stationary):
         r = self.euclid_dist(X, X2)
         return self.variance * tf.exp(-r)
 
- class Matern32(Stationary):
+class Matern32(Stationary):
     """
     The Matern 3/2 kernel
     """
