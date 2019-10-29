@@ -233,7 +233,7 @@ class SquaredExponential(Stationary):
 
     def K_r2(self, r2):
         return self.variance * tf.exp(-r2 / 2.)
-    
+
 class Matern12(Stationary):
     """
     The Matern 1/2 kernel
@@ -245,7 +245,7 @@ class Matern12(Stationary):
             X, X2 = self._slice(X, X2)
         r = self.euclid_dist(X, X2)
         return self.variance * tf.exp(-r)
-    
+
  class Matern32(Stationary):
     """
     The Matern 3/2 kernel
@@ -258,7 +258,7 @@ class Matern12(Stationary):
         r = self.euclid_dist(X, X2)
         return self.variance * (1. + np.sqrt(3.) * r) * \
                tf.exp(-np.sqrt(3.) * r)
-    
+
 class Matern52(Stationary):
     """
     The Matern 5/2 kernel
