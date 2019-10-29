@@ -28,6 +28,7 @@ parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
 parser.add_argument('--out', default='results', type=str)
 parser.add_argument('--arch', default='plain', type=str)
+parser.add_argument('--kernel', default='rbf', type=str)
 
 flags = parser.parse_args()
 
@@ -76,6 +77,17 @@ def compute_z_inner(X, M, feature_maps_out):
 
     return conv_utils.cluster_patches(filtered, M, 5)
 
+if flags.kernel == 'rbf':
+    kernel = kernels.SquaredExponential
+elif flags.kernel == 'matern12':
+    kernel = kernels.Matern12
+elif flags.kernel == 'matern32':
+    kernel = kernels.Matern32
+elif flags.kernel == 'matern52':
+    kernel = kernels.Matern52
+else:
+    raise NotImplementedError
+
 layers = []
 input_size = Xtrain.shape[1:]
 
@@ -93,7 +105,7 @@ for layer in range(0, flags.layers):
     stride = strides[layer]
     if layer != flags.layers-1:
 
-        base_kernel = kernels.SquaredExponential(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
+        base_kernel = kernel(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
         print('filter_size ', filter_size)
         if filter_size == 3:
             pad = 'SAME'
@@ -106,7 +118,7 @@ for layer in range(0, flags.layers):
 
         input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, flags.feature_maps)
     else:
-        rbf = kernels.SquaredExponential(input_dim=filter_size*filter_size*flags.feature_maps, lengthscales=2.0)
+        rbf = kernel(input_dim=filter_size*filter_size*flags.feature_maps, lengthscales=2.0)
         patch_extractor = PatchExtractor(input_size, filter_size=filter_size, feature_maps=10, stride=stride)
         conv_kernel = ConvKernel(rbf, patch_extractor)
         layer = Layer(conv_kernel, 10, Z)
