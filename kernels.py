@@ -233,3 +233,41 @@ class SquaredExponential(Stationary):
 
     def K_r2(self, r2):
         return self.variance * tf.exp(-r2 / 2.)
+    
+class Matern12(Stationary):
+    """
+    The Matern 1/2 kernel
+    """
+
+    @params_as_tensors
+    def K(self, X, X2=None, presliced=False):
+        if not presliced:
+            X, X2 = self._slice(X, X2)
+        r = self.euclid_dist(X, X2)
+        return self.variance * tf.exp(-r)
+    
+ class Matern32(Stationary):
+    """
+    The Matern 3/2 kernel
+    """
+
+    @params_as_tensors
+    def K(self, X, X2=None, presliced=False):
+        if not presliced:
+            X, X2 = self._slice(X, X2)
+        r = self.euclid_dist(X, X2)
+        return self.variance * (1. + np.sqrt(3.) * r) * \
+               tf.exp(-np.sqrt(3.) * r)
+    
+class Matern52(Stationary):
+    """
+    The Matern 5/2 kernel
+    """
+
+    @params_as_tensors
+    def K(self, X, X2=None, presliced=False):
+        if not presliced:
+            X, X2 = self._slice(X, X2)
+        r = self.euclid_dist(X, X2)
+        return self.variance * (1.0 + np.sqrt(5.) * r + 5. / 3. * tf.square(r)) \
+               * tf.exp(-np.sqrt(5.) * r)
