@@ -239,7 +239,6 @@ class Matern12(Stationary):
     The Matern 1/2 kernel
     """
 
-    @params_as_tensors
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
@@ -251,7 +250,6 @@ class Matern32(Stationary):
     The Matern 3/2 kernel
     """
 
-    @params_as_tensors
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
@@ -264,7 +262,6 @@ class Matern52(Stationary):
     The Matern 5/2 kernel
     """
 
-    @params_as_tensors
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
