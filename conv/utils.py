@@ -18,9 +18,9 @@ def cluster_patches(NHWC_X, M, patch_size):
     NHWC = NHWC_X.shape
     patch_length = patch_size ** 2 * NHWC[3]
     # Randomly sample images and patches.
-    patches = np.zeros((M * samples_per_inducing_point, patch_length), dtype=NHWC_X.dtype)
     patches_per_image = 1
     samples_per_inducing_point = 1000
+    patches = np.zeros((M * samples_per_inducing_point, patch_length), dtype=NHWC_X.dtype)
     for i in range(M * samples_per_inducing_point // patches_per_image):
         # Sample a random image, compute the patches and sample some random patches.
         image = _sample(NHWC_X, 1)[0]
