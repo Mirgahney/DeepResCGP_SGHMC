@@ -242,7 +242,7 @@ class Matern12(Stationary):
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
-        r = self.euclid_dist(X, X2)
+        r = self.scaled_euclid_dist(X, X2)
         return self.variance * tf.exp(-r)
 
 class Matern32(Stationary):
@@ -253,7 +253,7 @@ class Matern32(Stationary):
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
-        r = self.euclid_dist(X, X2)
+        r = self.scaled_euclid_dist(X, X2)
         return self.variance * (1. + np.sqrt(3.) * r) * \
                tf.exp(-np.sqrt(3.) * r)
 
@@ -265,6 +265,6 @@ class Matern52(Stationary):
     def K(self, X, X2=None, presliced=False):
         if not presliced:
             X, X2 = self._slice(X, X2)
-        r = self.euclid_dist(X, X2)
+        r = self.scaled_euclid_dist(X, X2)
         return self.variance * (1.0 + np.sqrt(5.) * r + 5. / 3. * tf.square(r)) \
                * tf.exp(-np.sqrt(5.) * r)
