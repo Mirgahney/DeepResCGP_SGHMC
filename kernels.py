@@ -250,10 +250,7 @@ class Matern32(Stationary):
     The Matern 3/2 kernel
     """
 
-    def K(self, X, X2=None, presliced=False):
-        if not presliced:
-            X, X2 = self._slice(X, X2)
-        r = self.scaled_euclid_dist(X, X2)
+    def K_r(self, r):
         return self.variance * (1. + np.sqrt(3.) * r) * \
                tf.exp(-np.sqrt(3.) * r)
 
