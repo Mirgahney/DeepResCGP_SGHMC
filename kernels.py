@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 import numpy as np
-
+from pdb import set_trace
 
 class Kernel(object):
     """
@@ -250,7 +250,8 @@ class Matern32(Stationary):
     The Matern 3/2 kernel
     """
 
-    def K_r(self, r):
+    def K_r2(self, r):
+        set_trace()
         return self.variance * (1. + np.sqrt(3.) * r) * \
                tf.exp(-np.sqrt(3.) * r)
 
