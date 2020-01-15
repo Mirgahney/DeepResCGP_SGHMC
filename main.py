@@ -29,6 +29,7 @@ parser.add_argument('--load', type=str)
 parser.add_argument('--out', default='results', type=str)
 parser.add_argument('--arch', default='plain', type=str)
 parser.add_argument('--kernel', default='rbf', type=str)
+parser.add_argument('--train-pct', default=1.0, type=float)
 
 flags = parser.parse_args()
 
@@ -41,6 +42,9 @@ def load_data():
         std = Xtrain.std((0, 1, 2))
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
+        train_size = Xtrain.shape[0]
+        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
+        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
         
     elif flags.dataset == "fashion_mnist":
         (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/tmp/fashion_mnist')
@@ -50,7 +54,9 @@ def load_data():
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
-        
+        train_size = Xtrain.shape[0]
+        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
+        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
     else:
         (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/tmp/mnist')
         mean = Xtrain.mean(axis=0)
@@ -59,6 +65,10 @@ def load_data():
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
+        train_size = Xtrain.shape[0]
+        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
+        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
+        
     return (Xtrain, Ytrain), (Xtest, Ytest)
 
 (Xtrain, Ytrain), (Xtest, Ytest) = load_data()
