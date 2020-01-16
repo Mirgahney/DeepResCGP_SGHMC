@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from collections import deque
 from sklearn import cluster
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 from models import RegressionModel, ClassificationModel
@@ -35,40 +36,40 @@ flags = parser.parse_args()
 
 def load_data():
     if flags.dataset == "cifar":
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.cifar10('/tmp/cifar')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.cifar10('/home/mmerghaney/cifar')
         Xtrain = np.transpose(Xtrain, [0, 2, 3, 1])
         Xtest = np.transpose(Xtest, [0, 2, 3, 1])
         mean = Xtrain.mean((0, 1, 2))
         std = Xtrain.std((0, 1, 2))
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
-        train_size = Xtrain.shape[0]
-        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
-        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
-        
+        Xtrain = Xtrain.reshape(-1, 28, 28, 1)
+        Xtest = Xtest.reshape(-1, 28, 28, 1)
+        Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
+        print(Xtrain.shape)
+
     elif flags.dataset == "fashion_mnist":
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/tmp/fashion_mnist')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/home/mmerghaney/fashion_mnist')
         mean = Xtrain.mean(axis=0)
         std = Xtrain.std()
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
-        train_size = Xtrain.shape[0]
-        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
-        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
+        Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
+        print(Xtrain.shape)
+
     else:
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/tmp/mnist')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/home/mmerghaney/mnist')
         mean = Xtrain.mean(axis=0)
         std = Xtrain.std()
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
-        train_size = Xtrain.shape[0]
-        Xtrain = Xtrain[0:int(train_size*flags.train_pct),:]
-        Ytrain = Ytrain[0:int(train_size*flags.train_pct),:]
-        
+        Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
+        print(Xtrain.shape)
+
     return (Xtrain, Ytrain), (Xtest, Ytest)
 
 (Xtrain, Ytrain), (Xtest, Ytest) = load_data()
