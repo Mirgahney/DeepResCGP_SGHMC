@@ -72,7 +72,7 @@ class MultiClass(object):
     def __init__(self, num_classes):
         self.num_classes = num_classes
         self.gauss_points = 20
-        self.invlink = MultiClassInvLink(num_classes)
+        self.invlink = MultiClassInvLink(num_classes) # better to use the robust max functions from https://github.com/GPflow/GPflow/blob/develop/gpflow/likelihoods/robustmax.py
 
     def logp(self, F, Y):
         # F: N x D

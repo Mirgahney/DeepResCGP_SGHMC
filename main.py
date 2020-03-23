@@ -105,8 +105,15 @@ input_size = Xtrain.shape[1:]
 Z_inner = compute_z_inner(Xtrain, flags.M, flags.feature_maps)
 patches = conv_utils.cluster_patches(Xtrain, flags.M, 10)
 
-strides = (2, 1, 1, 1, 1, 1)
-filters = (5, 3, 3, 3, 3, 5)
+if flags.layers == 3:
+    strides = (2, 1, 1)
+    filters = (5, 3, 5)
+elif flags.layers == 6:
+    strides = (2, 1, 1, 1, 1, 1)
+    filters = (5, 3, 3, 3, 3, 5)
+else:
+    raise Exception("undefined number of layers")
+
 for layer in range(0, flags.layers):
     if layer == 0:
         Z = patches
