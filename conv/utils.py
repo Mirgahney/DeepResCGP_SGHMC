@@ -31,7 +31,7 @@ def cluster_patches(NHWC_X, M, patch_size):
         image = _sample(NHWC_X, 1)[0]
         sampled_patches = _sample_patches(image, patches_per_image,
                 patch_size, patch_length)
-        assert sampled_patches[0].shape == (patch_size, patch_size), f'patches of size {sampled_patches[0].shape} are different size in cluster patches {patch_size}'
+        #assert sampled_patches[0].shape == (patch_size, patch_size), f'patches of size {sampled_patches[0].shape} are different size in cluster patches {patch_size}'
         patches[i*patches_per_image:(i+1)*patches_per_image] = sampled_patches
 
     assert patch_size * patch_size > M, 'number of pixels per patch is less than the number of inducing points'
