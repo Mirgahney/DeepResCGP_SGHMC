@@ -317,11 +317,13 @@ accuracy_list = []
 mll_list = [mll_max, mll_max, mll_max]
 best_model_que = deque([model, model, model])
 
+writer = tf.summary.FileWriter('train_log_hypers', tf.get_default_graph())
+
 for i in tdqm(
       range(flags.iterations), ascii=" .oO0",
       bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
     model.sghmc_step()
-    model.train_hypers()
+    summary = model.train_hypers()
     print("Iteration", i, end='\r')
     if i % 500 == 1:
         print("Iteration {}".format(i))
@@ -343,6 +345,9 @@ for i in tdqm(
                 model.save(flags.out, name = model_name)                
 
         result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
+
+    if i % 10 == 0:
+        writer.add_summary(summary, global_step=i)
 
     if i % 10000 == 0:
         model.save(flags.out, name = str(i))

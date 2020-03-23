@@ -120,8 +120,13 @@ class BaseModel(object):
         cacheable_params = self._collect_cacheable_params()
         ops += cacheable_params
 
-        results = self.session.run(ops, feed_dict=feed_dict)
+        # get the gradient of the hypers
+        merged = self.get_grad()
+
+        results, summary = self.session.run([ops,merged], feed_dict=feed_dict)
         self._cache_params(cacheable_params, results[1:])
+
+        return summary
 
     def print_sample_performance(self, posterior=False):
         X_batch, Y_batch = self.get_minibatch()

@@ -70,7 +70,7 @@ class DGP(BaseModel):
         global_step = tf.train.create_global_step()
         lr = tf.maximum(tf.train.exponential_decay(learning_rate=adam_lr, global_step=global_step,
             decay_rate=0.1, staircase=True, decay_steps=50000), 1e-5)
-        self.adam = tf.train.AdamOptimizer(adam_lr)
+        self.adam = tf.train.AdamOptimizer(lr)
         self.hyper_train_op = self.adam.minimize(self.nll, global_step=global_step)
 
         config = tf.ConfigProto()
@@ -159,3 +159,11 @@ class DGP(BaseModel):
             vs.append(v)
         return np.stack(ms, 0), np.stack(vs, 0)
 
+    def get_grad(self):
+        grads_and_vars = self.hyper_train_op.compute_gradients(self.nll)
+        for g, v in grads_and_vars:
+            tf.summary.histogram(v.name, v)
+            tf.summary.histogram(v.name + '_grad', g)
+
+        merged = tf.summary.merge_all()
+        return merged
