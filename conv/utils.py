@@ -34,7 +34,7 @@ def cluster_patches(NHWC_X, M, patch_size):
         #assert sampled_patches[0].shape == (patch_size, patch_size), f'patches of size {sampled_patches[0].shape} are different size in cluster patches {patch_size}'
         patches[i*patches_per_image:(i+1)*patches_per_image] = sampled_patches
 
-    assert patch_size * patch_size > M, f'number of pixels per patch {patch_size*patch_size} is less than the number of inducing points {M}'
+    assert patch_size * patch_size < M, f'number of pixels per patch {patch_size*patch_size} is less than the number of inducing points {M}'
 
     k_means = cluster.KMeans(n_clusters=M, n_jobs=-1)
     k_means.fit(patches)
