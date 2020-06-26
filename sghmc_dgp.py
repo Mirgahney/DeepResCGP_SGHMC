@@ -5,6 +5,9 @@ import numpy as np
 from sghmc_base import BaseModel
 import conditionals
 from scipy.cluster.vq import kmeans2
+from tensorflow.core.protobuf import rewriter_config_pb2
+
+
 
 
 class Layer(object):
@@ -67,19 +70,23 @@ class DGP(BaseModel):
 
         self.generate_update_step(self.nll, epsilon, mdecay)
 
-        global_step = tf.train.create_global_step()
-        lr = tf.maximum(tf.train.exponential_decay(learning_rate=adam_lr, global_step=global_step,
+        global_step = tf.compat.v1.train.create_global_step()
+        lr = tf.maximum(tf.compat.v1.train.exponential_decay(learning_rate=adam_lr, global_step=global_step,
             decay_rate=0.1, staircase=True, decay_steps=50000), 1e-5)
-        self.adam = tf.train.AdamOptimizer(lr)
+        self.adam = tf.compat.v1.train.AdamOptimizer(lr)
         self.hyper_train_op = self.adam.minimize(self.nll, global_step=global_step)
+        #self.train_step = self.adam.minimize(self.nll, global_step=global_step)
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
+        off = rewriter_config_pb2.RewriterConfig.OFF
+        config.graph_options.rewrite_options.arithmetic_optimization = off
+
         self.session = tf.Session(config=config)
         init_op = tf.global_variables_initializer()
         self.session.run(init_op)
 
-        self._saver = tf.train.Saver(
+        self._saver = tf.compat.v1.train.Saver(
                 var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
 
     def save(self, save_dir, name = None):
@@ -98,12 +105,13 @@ class DGP(BaseModel):
         Fmeans, Fvars = [], []
         Fdmeans, Fdvars = [], []
         downsample = False
-        
+
         for layer in self.layers:
             if layer.ltype == 'Residual':
                 print('Acces residual layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
-                assert mean.shape == Fdmeans[-1].shape, 'means shape sin\'t correct in propagate'
+                #assert mean.shape == Fdmeans[-1].shape, 'means shape sin\'t correct in propagate'
+                #mean += Fs[-1] # old mean update
                 mean += Fmeans[-1]
                 #var += Fvars[-1] + layer.kernel.Kzx(layer.Z, Fs[-1]) # variance update
                 #k_fx = self.kernel.K(F,Fs[-1])
@@ -116,17 +124,17 @@ class DGP(BaseModel):
                 Fs.append(F)
                 Fmeans.append(mean)
                 Fvars.append(var)
-                
-            elif layer.ltype == 'Residua-2': 
+
+            elif layer.ltype == 'Residua-2':
                 print('Acces residual-2 layer ', layer.ltype)
                 mean, var = layer.conditional(Fs[-1])
-                
+
                 if downsample:
                     mean += Fdmeans[-1]
                 else:
-                    mean += Fmeans[-2]   
+                    mean += Fmeans[-2]
                 downsample = False
-                
+
             elif layer.ltype == 'downsample':
                 print('Acces downsample layer ', layer.ltype)
                 downsample = True
@@ -136,7 +144,7 @@ class DGP(BaseModel):
                 Fds.append(F)
                 Fdmeans.append(mean)
                 Fdvars.append(var)
-                
+
             else:
                 mean, var = layer.conditional(Fs[-1])
             print('meand shape ', mean.shape)
@@ -160,10 +168,10 @@ class DGP(BaseModel):
         return np.stack(ms, 0), np.stack(vs, 0)
 
     def get_grad(self):
-        grads_and_vars = self.hyper_train_op.compute_gradients(self.nll)
+        grads_and_vars = self.adam.compute_gradients(self.nll)
         for g, v in grads_and_vars:
-            tf.summary.histogram(v.name, v)
-            tf.summary.histogram(v.name + '_grad', g)
+            tf.compat.v1.summary.histogram(v.name, v)
+            tf.compat.v1.summary.histogram(v.name + '_grad', g)
 
-        merged = tf.summary.merge_all()
+        merged = tf.compat.v1.summary.merge_all()
         return merged

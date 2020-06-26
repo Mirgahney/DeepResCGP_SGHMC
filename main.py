@@ -2,65 +2,68 @@ import os
 import numpy as np
 import pandas as pd
 from collections import deque
-from sklearn import cluster
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-from models import RegressionModel, ClassificationModel
 from sghmc_dgp import DGP, Layer
 from conv.layer import ConvLayer, PatchExtractor
-from conv.kernels import ConvKernel, AdditivePatchKernel
+from conv.kernels import ConvKernel
 import kernels
 from likelihoods import MultiClass
 from conv import utils as conv_utils
 
 import argparse
 import observations
-from pdb import set_trace
+
+#TODO:
+# 1. try variance update equation and see it's effect
+# 2. try different kernels
+# 3. go deeper!!
+# 4. try challanging datasets ImageNet 32, [corrupted dataset]
+# 5. try different train step for sghmc_step and train_hypers *****
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--feature_maps', default=10, type=int)
 parser.add_argument('-M', default=64, type=int)
 parser.add_argument('--batch-size', default=128, type=int)
 parser.add_argument('--iterations', default=100000, type=int)
-parser.add_argument('--dataset', default = "mnist", type=str)
+parser.add_argument('--dataset', default = "mnist", choices=['mnist', 'fashion_mnist', 'cifar'], type=str)
 parser.add_argument('--layers', default=3, type=int)
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', type=str)
 parser.add_argument('--out', default='results', type=str)
 parser.add_argument('--arch', default='plain', type=str)
-parser.add_argument('--kernel', default='rbf', type=str)
+parser.add_argument('--kernel', default='rbf', choices=['rbf', 'matern12', 'matern32', 'matern52'], type=str)
 parser.add_argument('--train-pct', default=1.0, type=float)
 
 flags = parser.parse_args()
 
 def load_data():
     if flags.dataset == "cifar":
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.cifar10('/home/mmerghaney/cifar')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.cifar10('/home/mirgahney/Projects/datasets/cifar')
         Xtrain = np.transpose(Xtrain, [0, 2, 3, 1])
         Xtest = np.transpose(Xtest, [0, 2, 3, 1])
         mean = Xtrain.mean((0, 1, 2))
         std = Xtrain.std((0, 1, 2))
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
-        Xtrain = Xtrain.reshape(-1, 28, 28, 1)
-        Xtest = Xtest.reshape(-1, 28, 28, 1)
         Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
         print(Xtrain.shape)
 
     elif flags.dataset == "fashion_mnist":
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/home/mmerghaney/fashion_mnist')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.fashion_mnist('/home/mirgahney/Projects/datasets/fashion_mnist')
         mean = Xtrain.mean(axis=0)
         std = Xtrain.std()
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
-        Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
+        if flags.train_pct < 1.0:
+            Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=flags.train_pct)
         print(Xtrain.shape)
 
     else:
-        (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/home/mmerghaney/mnist')
+        (Xtrain, Ytrain), (Xtest, Ytest) = observations.mnist('/home/mirgahney/Projects/datasets/mnist')
         mean = Xtrain.mean(axis=0)
         std = Xtrain.std()
         Xtrain = (Xtrain - mean) / std
@@ -99,6 +102,8 @@ elif flags.kernel == 'matern52':
 else:
     raise NotImplementedError
 
+save_dir = f'run/{flags.dataset}/l{flags.layers}_fm_{flags.feature_maps}_M{flags.M}_K{kernel}_lr{flags.lr}'
+
 layers = []
 input_size = Xtrain.shape[1:]
 
@@ -111,6 +116,9 @@ if flags.layers == 3:
 elif flags.layers == 6:
     strides = (2, 1, 1, 1, 1, 1)
     filters = (5, 3, 3, 3, 3, 5)
+elif flags.layers == 12: #TODO: add non-residual layers with 3 filter size replacing 5x5, we can scall up the layers to 18
+    strides = (2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+    filters = (5, 3, 3, 3, 3, 5, 3, 3, 3, 3, 5, 5)
 else:
     raise Exception("undefined number of layers")
 
@@ -266,7 +274,7 @@ class ResCGPNet():
                         adam_lr=flags.lr)
 
 if flags.arch == 'ResNet':
-    model = ResCGPNet(Basic_Block,[2,2,2,2],num_classes=10).get_model()
+    model = ResCGPNet(Basic_Block,[2,2,2,2], num_classes=10).get_model()
     
 if flags.load is not None:
     print("Loading parameters")
@@ -314,48 +322,50 @@ tdqm = conv_utils.TqdmExtraFormat
 
 mll_max = -np.inf
 accuracy_list = []
-mll_list = [mll_max, mll_max, mll_max]
+mll_list_que = deque([mll_max, mll_max, mll_max])
 best_model_que = deque([model, model, model])
 
-writer = tf.summary.FileWriter('train_log_hypers', tf.get_default_graph())
+writer = tf.compat.v1.summary.FileWriter(f'{save_dir}', tf.get_default_graph())
 
 for i in tdqm(
       range(flags.iterations), ascii=" .oO0",
       bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
-    model.sghmc_step()
-    summary = model.train_hypers()
-    print("Iteration", i, end='\r')
-    if i % 500 == 1:
-        print("Iteration {}".format(i))
-        mll = model.print_sample_performance()
-        if i >= 17500:
-            if np.round(mll - mll_max, decimals = 5) > 0:
-                # accuracy = measure_accuracy(model)
-                mll_max = mll
-
-                print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_list[-1], mll_max))
-                # print('Update accuracy ({:.4f} --> {:.4f}). Updating values ....'.format(accuracy_list[-1], accuracy))
-
-                # accuracy_list.append(accuracy)
-                mll_list.append(mll)
-                best_model_que.append(model) # append best model so far
-                best_model_que.popleft(); # remove worst model so far
-
-                model_name = str(i) + '_' + str(mll)#str(accuracy) + '_' + str(mll)
-                model.save(flags.out, name = model_name)                
-
-        result_df = result_df.append({'step': i, 'mll': mll}, ignore_index=True)
-
-    if i % 10 == 0:
+    if i == 0:
+        model.sghmc_step()
+        summary = model.train_hypers(tb=True)
+        print("Iteration", i, end='\r')
+        mll, sum_mll = model.print_sample_performance(tb=True)
+        print(f"MLL: {mll}")
+        # mll = struct.unpack('fff', sum_mll)[2]
+        # set_trace()
         writer.add_summary(summary, global_step=i)
+        writer.add_summary(sum_mll, global_step=i)
+    else:
+        model.sghmc_step()
+        model.train_hypers()
+        print("Iteration", i, end='\r')
+        mll = model.print_sample_performance()
+        print(f"MLL: {mll}")
 
-    if i % 10000 == 0:
-        model.save(flags.out, name = str(i))
+    if i >= 1000:#17500:
+        if np.round(mll - mll_max, decimals=5) > 0:
+            # accuracy = measure_accuracy(model)
+            mll_max = mll
+
+            print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_list_que[-1], mll_max))
+            mll_list_que.append(mll)
+            best_model_que.append(model)  # append best model so far
+            best_model_que.popleft()  # remove worst model so far
+            mll_list_que.popleft()
+
+# save best model
+model_name = '_bestmodel_' + str(mll_list_que[-1])
+best_model_que[-1].save(save_dir, name=model_name)
 
 # append the final accuracy
 # accuracy = sample_performance_acc(model)
-mll = model.print_sample_performance()
-result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
+#mll = model.print_sample_performance()
+#result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
 
 
 def save_result(result_df, save_dir, name = None):
@@ -369,9 +379,13 @@ def save_result(result_df, save_dir, name = None):
     save_path = os.path.join(save_dir, 'metrics') + name
     result_df.to_csv(save_path, index=False)
 
+# save final model
+model_name = str(i) + '_' + str(mll)
+model.save(save_dir, name=model_name)
 
-model.save(flags.out)
-
+#result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
+#save_result(result_df, flags.out)
+#set_trace()
 accuracy = measure_accuracy(model)
 # loop over model
 for m in tdqm(best_model_que):
@@ -381,14 +395,13 @@ for m in tdqm(best_model_que):
 acc_ind = np.argmax(accuracy_list)
 
 print("Model Test accuracy:", accuracy)
-print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list[-3:][acc_ind]))
+print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list_que[acc_ind]))
 
-result_df = result_df.append({'step': flags.iterations, 'mll': mll}, ignore_index=True)
-save_result(result_df, flags.out)
+
 
 acc_mll_df = pd.DataFrame(accuracy_list, columns=['accuracy'])
-acc_mll_df['mll'] = mll_list[-3:]
-save_result(acc_mll_df, flags.out, name = '_mll_accuracy')
+acc_mll_df['mll'] = mll_list_que
+save_result(acc_mll_df, save_dir, name = '_mll_accuracy')
 
 # send finish email
 #os.system('python3 SendEmail.py --acc {:.4f} --mll {:.5f}'.format(np.max(accuracy_list), mll_list[-3:][acc_ind]))
