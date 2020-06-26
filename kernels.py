@@ -178,7 +178,7 @@ class Stationary(Kernel):
         dist += Xs + tf.matrix_transpose(X2s)
         return dist
 
-    def _clipped_sqrt(r2):
+    def _clipped_sqrt(self, r2):
         # Clipping around the (single) float precision which is ~1e-45.
         return tf.sqrt(tf.maximum(r2, 1e-40))
 
@@ -191,6 +191,7 @@ class Stationary(Kernel):
         """
 
         r2 = self.scaled_square_dist(X, X2)
+        #set_trace()
         return self._clipped_sqrt(r2)
 
     def Kdiag(self, X, presliced=False):
@@ -231,18 +232,15 @@ class SquaredExponential(Stationary):
     The radial basis function (RBF) or squared exponential kernel
     """
 
-    def K_r2(self, r2):
-        return self.variance * tf.exp(-r2 / 2.)
+    def K_r(self, r):
+        return self.variance * tf.exp(-r / 2.)
 
 class Matern12(Stationary):
     """
     The Matern 1/2 kernel
     """
 
-    def K(self, X, X2=None, presliced=False):
-        if not presliced:
-            X, X2 = self._slice(X, X2)
-        r = self.scaled_euclid_dist(X, X2)
+    def K_r(self, r):
         return self.variance * tf.exp(-r)
 
 class Matern32(Stationary):
@@ -250,19 +248,23 @@ class Matern32(Stationary):
     The Matern 3/2 kernel
     """
 
-    def K_r2(self, r):
-        set_trace()
-        return self.variance * (1. + np.sqrt(3.) * r) * \
-               tf.exp(-np.sqrt(3.) * r)
+    def K_r(self, r):
+        #set_trace()
+        sqrt3 = np.sqrt(3.)
+        return self.variance * (1. + sqrt3 * r) * tf.exp(-sqrt3 * r)
 
 class Matern52(Stationary):
     """
     The Matern 5/2 kernel
     """
 
-    def K(self, X, X2=None, presliced=False):
-        if not presliced:
-            X, X2 = self._slice(X, X2)
-        r = self.scaled_euclid_dist(X, X2)
-        return self.variance * (1.0 + np.sqrt(5.) * r + 5. / 3. * tf.square(r)) \
-               * tf.exp(-np.sqrt(5.) * r)
+    def K_r(self, r):
+        sqrt5 = np.sqrt(5.0)
+        return self.variance * (1.0 + sqrt5 * r + 5.0 / 3.0 * tf.square(r)) * tf.exp(-sqrt5 * r)
+
+    #def K(self, X, X2=None, presliced=False):
+    #    if not presliced:
+    #        X, X2 = self._slice(X, X2)
+    #    r = self.scaled_euclid_dist(X, X2)
+    #    return self.variance * (1.0 + np.sqrt(5.) * r + 5. / 3. * tf.square(r)) \
+    #           * tf.exp(-np.sqrt(5.) * r)
