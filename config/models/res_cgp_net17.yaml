@@ -9,7 +9,7 @@ models:
     num_classes: ${data.num_classes}
     window_size: 100  #TODO: checkout what this parameter for
     expansion_factor: 0
-    layers_strcut: [1, 1, 1] #[2, 1, 0]
+    layers_strcut: [3, 6, 3]
     batch_size: ${data.batch_size}
     lr: ${optimizer.lr}
     weight_decay: ${optimizer.weight_decay}

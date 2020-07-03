@@ -27,7 +27,7 @@ def init_dataset(cfg):
 def init_model(cfg, X, Y):
     #model = hydra.utils.instantiate(cfg.models)
     model = ResCGPNet(X, Y, num_classes=cfg.data.num_classes, layers_strcut=cfg.models.params.layers_strcut,
-                      window_size=cfg.models.window_size, expansion_factor=cfg.models.params.expansion_factor,
+                      window_size=cfg.models.params.window_size, expansion_factor=cfg.models.params.expansion_factor,
                       M=cfg.models.params.M, kernel=cfg.models.params.kernel, batch_size=cfg.data.batch_size,
                       lr=cfg.optimizer.lr, weight_decay=cfg.optimizer.weight_decay,
                       feature_maps=cfg.models.params.feature_maps)
