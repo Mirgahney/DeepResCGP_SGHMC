@@ -1,6 +1,6 @@
 import numpy as np
 import kernels
-from models import ClassificationModel
+from models.models import ClassificationModel
 from unittest import TestCase
 from argparse import Namespace
 

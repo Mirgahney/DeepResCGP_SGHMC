@@ -58,7 +58,7 @@ class DGP(BaseModel):
         self.layers = layers
         N = X.shape[0]
 
-        super().__init__(X, Y, [l.U for l in self.layers], minibatch_size, window_size)
+        super().__init__(X, Y, [l.U for l in self.layers], minibatch_size, window_size) #TODO: the l.U isn't trainable
         self.f, self.fmeans, self.fvars = self.propagate(self.X_placeholder)
         self.y_mean, self.y_var = self.likelihood.predict_mean_and_var(self.fmeans[-1], self.fvars[-1])
 
@@ -72,7 +72,7 @@ class DGP(BaseModel):
 
         global_step = tf.compat.v1.train.create_global_step()
         lr = tf.maximum(tf.compat.v1.train.exponential_decay(learning_rate=adam_lr, global_step=global_step,
-            decay_rate=0.1, staircase=True, decay_steps=50000), 1e-5)
+            decay_rate=0.1, staircase=True, decay_steps=1000), 1e-5)
         self.adam = tf.compat.v1.train.AdamOptimizer(lr)
         self.hyper_train_op = self.adam.minimize(self.nll, global_step=global_step)
         #self.train_step = self.adam.minimize(self.nll, global_step=global_step)
