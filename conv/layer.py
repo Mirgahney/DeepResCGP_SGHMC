@@ -134,7 +134,7 @@ class ConvLayer(Layer):
 
     def _compute_Lu(self, Z):
         MM_Kzz =  self.conv_kernel.Kzz(self.Z)
-        return tf.cholesky(MM_Kzz)
+        return tf.linalg.cholesky(MM_Kzz)
 
     def cacheable_params(self):
         return [self.Lz]

@@ -68,7 +68,7 @@ def multiple_output_conditional(Kmn, Lm, Knn, u, full_cov=False, white=False):
 
     def solve_A(MN_Kmn): # TODO: check for numerical instability in solve
         A = tf.matrix_triangular_solve(Lm, MN_Kmn, lower=True)
-        assert tf.reduce_any(tf.math.less((tf.matmul(Lm, A) - MN_Kmn), 1e-3)), 'solve_A isn\'t within threshold of 1e-3 in multiple_output_conditional'
+        #assert tf.math.reduce_any(tf.math.less((tf.matmul(Lm, A) - MN_Kmn), 1e-3)), 'solve_A isn\'t within threshold of 1e-3 in multiple_output_conditional'
         return A # M x M @ M x N -> M x N
     A = tf.map_fn(solve_A, Kmn, parallel_iterations=100) # P x M x N
 
@@ -87,7 +87,7 @@ def multiple_output_conditional(Kmn, Lm, Knn, u, full_cov=False, white=False):
         A = tf.map_fn(backsub, A, parallel_iterations=100) # P x M x N
 
     # construct the conditional mean
-    fmean = tf.tensordot(A, u, [[1], [0]]) # P x N x R
+    fmean = tf.tensordot(A, u, [[1], [0]]) # P x N x R #Residual connection makes sense here but the U isn't trainable
     fmean = tf.transpose(fmean, [1, 0, 2]) # N x P x R
 
     return fmean, fvar # N x P x R, R x P x N or R x P x N x N

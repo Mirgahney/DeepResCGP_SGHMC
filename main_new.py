@@ -15,11 +15,14 @@ from pdb import set_trace
 # 2. try different kernels
 # 3. go deeper!!
 # 4. try challanging datasets ImageNet 32, [corrupted dataset]
-# 5. try different train step for sghmc_step and train_hypers *****
-# progress bar information
+# 5. try different train step for sghmc_step and train_hypers *
+# 6. study prediction variance with corrupted dataset
+# 7. another architecture design we can add contraction and expansion layers before applying 3x3 conv but need to
+#    calculate computation cost to gain from this process **
+# 8. experiment with l.Z alone and with l.U and l.Z make l.U trainable
+# progress bar information print the mll in the progress bar
 
-
-def train_model(model, Xtest, Ytest, writer, save_dir):
+def train_model(cfg, model, Xtest, Ytest, writer, save_dir):
     mll_max = -np.inf
     best_iter = 0
     accuracy_list = []
@@ -27,7 +30,8 @@ def train_model(model, Xtest, Ytest, writer, save_dir):
     best_model_que = deque([model, model, model])
     for i in tdqm(range(cfg.iterations), ascii=" .oO0", bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
         if i == 0:
-            model.sghmc_step()
+            for j in range(cfg.sghmc_step):
+                model.sghmc_step()
             summary = model.train_hypers(tb=True)
             print("Iteration", i, end='\r')
             mll, sum_mll = model.print_sample_performance(tb=True)
@@ -37,47 +41,35 @@ def train_model(model, Xtest, Ytest, writer, save_dir):
             writer.add_summary(summary, global_step=i)
             writer.add_summary(sum_mll, global_step=i)
         else:
-            model.sghmc_step()
+            for j in range(cfg.sghmc_step):
+                model.sghmc_step()
             model.train_hypers()
             print("Iteration", i, end='\r')
             mll, _ = model.print_sample_performance(tb=True)
             print(f"MLL: {mll}")
 
-        if i >= 1000:  # 17500:
-            if np.round(mll - mll_max, decimals=5) > 0:
-                # accuracy = measure_accuracy(model)
-                mll_max = mll
+        if np.round(mll - mll_max, decimals=5) > 0:
+            # accuracy = measure_accuracy(model)
+            mll_max = mll
 
-                print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_list_que[-1], mll_max))
-                mll_list_que.append(mll)
-                best_model_que.append(model)  # append best model so far
-                best_model_que.popleft()  # remove worst model so far
-                mll_list_que.popleft()
-                best_iter = i
-
-    # save final model
-    #print(f'################## save final model at {save_dir} ##################')
-    #model_name = str(i) + '_' + str(mll)
-    #model.save(save_dir, name=model_name)
+            print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_list_que[-1], mll_max))
+            mll_list_que.append(mll)
+            best_model_que.append(model)  # append best model so far
+            best_model_que.popleft()  # remove worst model so far
+            mll_list_que.popleft()
+            best_iter = i
 
     # save best model
     print(f'################## save best model at {save_dir} ##################')
     model_name = f'{best_iter}_bestmodel_{mll_list_que[-1]}'
     best_model_que[-1].save(save_dir, name=model_name)
 
-    accuracy = measure_accuracy(model, Xtest, Ytest)
-    # loop over model
-    for m in tdqm(best_model_que):
-        acc = measure_accuracy(m, Xtest, Ytest)
-        accuracy_list.append(acc)
-
-    acc_ind = np.argmax(accuracy_list)
-
-    print("Model Test accuracy:", accuracy)
-    print("Model Best Test accuracy: {:.5f} got with mll: {:.7f}".format(np.max(accuracy_list), mll_list_que[acc_ind]))
+    accuracy = measure_accuracy(best_model_que[-1], Xvalid, Yvalid)
+    accuracy_list.append(accuracy)
+    print("Best Model Test accuracy:", accuracy)
 
     acc_mll_df = pd.DataFrame(accuracy_list, columns=['accuracy'])
-    acc_mll_df['mll'] = mll_list_que
+    acc_mll_df['mll'] = mll_list_que[-1]
     save_result(acc_mll_df, save_dir, name='_mll_accuracy')
 
 parser = argparse.ArgumentParser()
@@ -91,21 +83,23 @@ parser.add_argument('--load', action='store_true')
 parser.add_argument('--kernel', default='rbf', choices=['rbf', 'matern12', 'matern32', 'matern52'], type=str)
 parser.add_argument('--arch', default='ResCGPNet8', choices=['ResCGPNet8', 'ResCGPNet11', 'ResCGPNet17'], type=str)
 parser.add_argument('--train-pct', default=1.0, type=float)
+parser.add_argument('--sghmc-step', default=1, type=int, help='number of sghmc update steps')
 
 cfg = parser.parse_args()
 
-(Xtrain, Ytrain), (Xtest, Ytest) = load_data(cfg.dataset, cfg.train_pct)
+(Xtrain, Ytrain), (Xvalid, Yvalid), (Xtest, Ytest) = load_data(cfg.dataset, cfg.train_pct)
 
 if cfg.arch == 'ResCGPNet8':
-    model = ResCGPNet8(cfg, Xtrain, Ytrain, num_classes=10, window_size=100)
+    model = ResCGPNet8(cfg, Xtrain, Ytrain, num_classes=10, window_size=100, expansion_factor=0)
 elif cfg.arch == 'ResCGPNet11':
-    model = ResCGPNet11(cfg, Xtrain, Ytrain, num_classes=10, window_size=100)
+    model = ResCGPNet11(cfg, Xtrain, Ytrain, num_classes=10, window_size=100, expansion_factor=0)
 elif cfg.arch == 'ResCGPNet17':
-    model = ResCGPNet17(cfg, Xtrain, Ytrain, num_classes=10, window_size=100)
+    model = ResCGPNet17(cfg, Xtrain, Ytrain, num_classes=10, window_size=100, expansion_factor=0)
 else:
     raise Exception('Undefined network architecture')
 
-save_dir = f'run/{cfg.dataset}/{cfg.arch}_fm_{cfg.feature_maps}_M{cfg.M}_K{cfg.kernel}_lr{cfg.lr}_bs{cfg.batch_size}'
+save_dir = f'run/{cfg.dataset}/{cfg.arch}_fm_{cfg.feature_maps}_M{cfg.M}_K{cfg.kernel}_lr{cfg.lr}_bs{cfg.batch_size}' \
+           f'_sghmc{cfg.sghmc_step}'
 
 if cfg.load:
     print("Loading parameters")
@@ -120,6 +114,6 @@ if cfg.load:
 # create a data frame to save intermediate resulr
 result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 
-writer = tf.compat.v1.summary.FileWriter(f'{save_dir}', tf.get_default_graph())
+writer = tf.compat.v1.summary.FileWriter(f'{save_dir}')#, tf.get_default_graph())
 
-train_model(model, Xtest, Ytest, writer, save_dir)
+train_model(cfg, model, Xtest, Ytest, writer, save_dir)
