@@ -1,0 +1,15 @@
+models:
+  class: models.ResCGPNet
+  params:
+    X: ???
+    Y: ???
+    feature_maps: 10
+    M : 384
+    kernel: 'rbf'
+    num_classes: ${data.num_classes}
+    window_size: 100  #TODO: checkout what this parameter for
+    expansion_factor: 1
+    layers_strcut: [1, 1, 1] #[2, 1, 0]
+    batch_size: ${data.batch_size}
+    lr: ${optimizer.lr}
+    weight_decay: ${optimizer.weight_decay}

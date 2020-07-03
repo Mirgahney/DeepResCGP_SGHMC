@@ -1,0 +1,30 @@
+seed: 2
+tensorType: torch.cuda.FloatTensor
+device: cuda
+gpu_name: cuda
+
+optimizer:
+  lr: 1e-3
+  weight_decay: 2e-3
+
+train:
+  sghmc_step: 1
+  iterations: 2500
+  load: False
+
+dir: '/home/mirgahney/Projects/Personal' #/DeepResCGP_SGHMC'
+top_dir: ${dir}/save_data #/three_view
+
+data:
+  name: 'fashion_mnist'
+  path: ${dir}/datasets
+  batch_size: 128
+  num_classes: 10
+  train_pct: 0.8333333333
+
+save_model: True
+
+defaults:
+  - models: res_cgp_net8
+  #- cost:  #image_velocity_tracking #image_trajectory_tracking
+  - hydra/run: customized
