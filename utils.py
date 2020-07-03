@@ -19,7 +19,7 @@ def load_data(dataset, train_pct=1.0, root_dir:str='/home/mirgahney/Projects/dat
         Xtrain = (Xtrain - mean) / std
         Xtest = (Xtest - mean) / std
         if train_pct < 1.0:
-            Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
+            Xvalid, Xtrain , Yvalid, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
         print(Xtrain.shape)
 
     elif dataset == "fashion_mnist":
@@ -31,7 +31,7 @@ def load_data(dataset, train_pct=1.0, root_dir:str='/home/mirgahney/Projects/dat
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
         if train_pct < 1.0:
-            Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
+            Xvalid, Xtrain , Yvalid, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
         print(Xtrain.shape)
 
     else:
@@ -42,10 +42,10 @@ def load_data(dataset, train_pct=1.0, root_dir:str='/home/mirgahney/Projects/dat
         Xtest = (Xtest - mean) / std
         Xtrain = Xtrain.reshape(-1, 28, 28, 1)
         Xtest = Xtest.reshape(-1, 28, 28, 1)
-        Xtrain_2, Xtrain , Ytrain_2, Ytrain = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
+        Xvalid, Xtrain , Ytrain_2, Yvalid = train_test_split(Xtrain, Ytrain, stratify=Ytrain, test_size=train_pct)
         print(Xtrain.shape)
 
-    return (Xtrain, Ytrain), (Xtest, Ytest)
+    return (Xtrain, Ytrain), (Xvalid, Yvalid), (Xtest, Ytest)
 
 def get_kernel(kernel_name):
     if kernel_name == 'rbf':
