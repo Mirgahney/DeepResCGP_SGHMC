@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from conv.utils import TqdmExtraFormat as tdqm
 from utils import load_data, measure_accuracy, save_result
-from models import ResCGPNet8, ResCGPNet11, ResCGPNet17
+from models import ResCGPNet8, ResCGPNet11, ResCGPNet17, PlainCGPNet11
 import argparse
 from pdb import set_trace
 
@@ -22,7 +22,7 @@ from pdb import set_trace
 # 8. experiment with l.Z alone and with l.U and l.Z make l.U trainable
 # progress bar information print the mll in the progress bar
 
-def train_model(cfg, model, Xtest, Ytest, writer, save_dir):
+def train_model(cfg, model, Xvalid, Yvalid, writer, save_dir):
     mll_max = -np.inf
     best_iter = 0
     accuracy_list = []
@@ -81,7 +81,7 @@ parser.add_argument('--dataset', default = "mnist", choices=['mnist', 'fashion_m
 parser.add_argument('--lr', default=1e-4, type=float)
 parser.add_argument('--load', action='store_true')
 parser.add_argument('--kernel', default='rbf', choices=['rbf', 'matern12', 'matern32', 'matern52'], type=str)
-parser.add_argument('--arch', default='ResCGPNet8', choices=['ResCGPNet8', 'ResCGPNet11', 'ResCGPNet17'], type=str)
+parser.add_argument('--arch', default='ResCGPNet8', choices=['ResCGPNet8', 'ResCGPNet11', 'ResCGPNet17', 'PlainCGPNet11'], type=str)
 parser.add_argument('--train-pct', default=1.0, type=float)
 parser.add_argument('--sghmc-step', default=1, type=int, help='number of sghmc update steps')
 
@@ -95,6 +95,8 @@ elif cfg.arch == 'ResCGPNet11':
     model = ResCGPNet11(cfg, Xtrain, Ytrain, num_classes=10, window_size=100, expansion_factor=0)
 elif cfg.arch == 'ResCGPNet17':
     model = ResCGPNet17(cfg, Xtrain, Ytrain, num_classes=10, window_size=100, expansion_factor=0)
+elif cfg.arch == 'PlainCGPNet11':
+    model = PlainCGPNet11(cfg, Xtrain, Ytrain, num_classes=10, window_size=100)#, expansion_factor=0)
 else:
     raise Exception('Undefined network architecture')
 
@@ -116,4 +118,4 @@ result_df = pd.DataFrame(columns=['step', 'mll'])#, 'accuracy'])
 
 writer = tf.compat.v1.summary.FileWriter(f'{save_dir}')#, tf.get_default_graph())
 
-train_model(cfg, model, Xtest, Ytest, writer, save_dir)
+train_model(cfg, model, Xvalid, Yvalid, writer, save_dir)

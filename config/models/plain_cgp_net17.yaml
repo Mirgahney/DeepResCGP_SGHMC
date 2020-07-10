@@ -1,0 +1,16 @@
+models:
+  class: models.ResCGPNet
+  name: ResCGPNet17
+  params:
+    X: ???
+    Y: ???
+    feature_maps: 10
+    M : ${model.M}
+    kernel: ${model.kernel}
+    num_classes: ${data.num_classes}
+    window_size: 100  #TODO: checkout what this parameter for
+    expansion_factor: ${model.expansion_factor}
+    layers_strcut: [3, 6, 3]
+    batch_size: ${data.batch_size}
+    lr: ${optimizer.lr}
+    weight_decay: ${optimizer.weight_decay}

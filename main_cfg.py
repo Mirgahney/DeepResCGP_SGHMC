@@ -6,18 +6,20 @@ import tensorflow as tf
 
 from conv.utils import TqdmExtraFormat as tdqm
 from utils import load_data, measure_accuracy, save_result
-from models import ResCGPNet
+from models import ResCGPNet, PlainCGPNet
 from pdb import set_trace
 
 #TODO:
-# 1. try variance update equation and see it's effect
-# 2. try different kernels
+# 1. try variance update equation and see it's effect (done!)
+# 2. try different kernels (done!)
 # 3. go deeper!!
 # 4. try challanging datasets ImageNet 32, [corrupted dataset]
-# 5. try different train step for sghmc_step and train_hypers *****
+# 5. try different train step for sghmc_step and train_hypers ***** (done!)
 # 6. study prediction variance with corrupted dataset
 # 7. another architecture design we can add contraction and expansion layers before applying 3x3 conv but need to
 #    calculate computation cost to gain from this process *******
+# 8. we can initialize inducing points (compute_z_inner) with trained kernels from CNN ResNets with similar architecture
+#    trained on ImageNet for example **
 # progress bar information print the mll in the progress bar
 
 def init_dataset(cfg):
@@ -26,17 +28,27 @@ def init_dataset(cfg):
 
 def init_model(cfg, X, Y):
     #model = hydra.utils.instantiate(cfg.models)
-    model = ResCGPNet(X, Y, num_classes=cfg.data.num_classes, layers_strcut=cfg.models.params.layers_strcut,
+    if 'Res' in str(cfg.models.name):
+        model = ResCGPNet(X, Y, num_classes=cfg.data.num_classes, layers_strcut=cfg.models.params.layers_strcut,
                       window_size=cfg.models.params.window_size, expansion_factor=cfg.models.params.expansion_factor,
                       M=cfg.models.params.M, kernel=cfg.models.params.kernel, batch_size=cfg.data.batch_size,
                       lr=cfg.optimizer.lr, weight_decay=cfg.optimizer.weight_decay,
                       feature_maps=cfg.models.params.feature_maps)
+    elif 'Plain' in str(cfg.models.name):
+        model = PlainCGPNet(X, Y, num_classes=cfg.data.num_classes, layers_strcut=cfg.models.params.layers_strcut,
+                          window_size=cfg.models.params.window_size,
+                          expansion_factor=cfg.models.params.expansion_factor,
+                          M=cfg.models.params.M, kernel=cfg.models.params.kernel, batch_size=cfg.data.batch_size,
+                          lr=cfg.optimizer.lr, weight_decay=cfg.optimizer.weight_decay,
+                          feature_maps=cfg.models.params.feature_maps)
     return model
 
 def creat_task(cfg):
-    model_name = f'{cfg.arch}_fm_{cfg.feature_maps}_M{cfg.M}_K{cfg.kernel}_lr{cfg.lr}_bs{cfg.batch_size}_' \
-                 f'efactor{cfg.models.expansion_factor}_sghmc{cfg.sghmc_step}'
-    save_dir = f'run/{cfg.dataset}/{model_name}'
+    model_name = f'{cfg.models.name}_fm_{cfg.models.params.feature_maps}_M{cfg.model.M}_K{cfg.model.kernel}_' \
+                 f'lr{cfg.optimizer.lr}_bs{cfg.data.batch_size}_efactor{cfg.model.expansion_factor}_' \
+                 f'sghmc{cfg.train.sghmc_step}'
+    save_dir = f'{cfg.top_dir}/{cfg.data.name}/{model_name}_change_zinner_size' #/0_{cfg.train.rep}'
+    print(f'Save model at {save_dir}\n')
     writer = tf.compat.v1.summary.FileWriter(f'{save_dir}')
     return save_dir, writer
 
@@ -45,7 +57,7 @@ def train_model(cfg, model, Xvalid, Yvalid, writer, save_dir):
     best_iter = 0
     best_model = model
     for i in tdqm(range(cfg.train.iterations), ascii=" .oO0", bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
-        if i == 0:
+        if i >= 0:
             for j in range(cfg.train.sghmc_step):
                 model.sghmc_step()
             summary = model.train_hypers(tb=True)
