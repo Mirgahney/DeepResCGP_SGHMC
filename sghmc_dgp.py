@@ -88,6 +88,9 @@ class DGP(BaseModel):
 
         self._saver = tf.compat.v1.train.Saver(
                 var_list=tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
+        # define tb summary
+        self.tb_mll = self._define_mll_tb()
+        self.tb_layers_grad = self._define_layers_grad_tb()
 
     def save(self, save_dir, name = None):
         if name is None:
@@ -167,11 +170,16 @@ class DGP(BaseModel):
             vs.append(v)
         return np.stack(ms, 0), np.stack(vs, 0)
 
-    def get_grad(self):
+    def _define_layers_grad_tb(self):
         grads_and_vars = self.adam.compute_gradients(self.nll)
         for g, v in grads_and_vars:
-            tf.compat.v1.summary.histogram(v.name, v)
-            tf.compat.v1.summary.histogram(v.name + '_grad', g)
+            tf.compat.v1.summary.histogram(v.name[:-2], v)
+            tf.compat.v1.summary.histogram(v.name[:-2] + '_grad', g)
 
         merged = tf.compat.v1.summary.merge_all()
         return merged
+
+    def _define_mll_tb(self):
+        mll = tf.math.reduce_mean(self.log_likelihood)
+        tb_mll = tf.compat.v1.summary.scalar('mll', mll)
+        return tb_mll

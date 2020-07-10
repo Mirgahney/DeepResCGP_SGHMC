@@ -110,7 +110,7 @@ class BaseModel(object):
         if len(self.window) > self.window_size:
             self.window = self.window[-self.window_size:]
 
-    def train_hypers(self, tb=False):
+    def train_hypers(self):
         X_batch, Y_batch = self.get_minibatch()
         feed_dict = {self.X_placeholder: X_batch, self.Y_placeholder: Y_batch}
         i = np.random.randint(len(self.window))
@@ -119,19 +119,11 @@ class BaseModel(object):
         ops = [self.hyper_train_op]
         cacheable_params = self._collect_cacheable_params()
         ops += cacheable_params
-        if tb:
-            # get the gradient of the hypers
-            merged = self.get_grad()
+        results, summary = self.session.run([ops, self.tb_layers_grad], feed_dict=feed_dict)
+        self._cache_params(cacheable_params, results[1:])
+        return summary
 
-            results, summary = self.session.run([ops, merged], feed_dict=feed_dict)
-            self._cache_params(cacheable_params, results[1:])
-
-            return summary
-        else:
-            results = self.session.run(ops, feed_dict=feed_dict)
-            self._cache_params(cacheable_params, results[1:])
-
-    def print_sample_performance(self, posterior=False, tb=False):
+    def print_sample_performance(self, posterior=False):
         X_batch, Y_batch = self.get_minibatch()
         feed_dict = {self.X_placeholder: X_batch, self.Y_placeholder: Y_batch}
         if posterior:
@@ -139,18 +131,12 @@ class BaseModel(object):
 
         if self.cached_params is not None:
             feed_dict.update(self.cached_params)
-        if tb:
-            mll = tf.math.reduce_mean(self.log_likelihood)
-            tb_mll = tf.compat.v1.summary.histogram('mll', mll)
-            sum_mll = self.session.run(tb_mll, feed_dict=feed_dict)
 
-            mll = np.mean(self.session.run((self.log_likelihood), feed_dict=feed_dict), 0)
-            #print(' Training MLL of a sample: {}'.format(mll.item()))
-            return mll.item(), sum_mll
-        else:
-            mll = np.mean(self.session.run((self.log_likelihood), feed_dict=feed_dict), 0)
-            # print(' Training MLL of a sample: {}'.format(mll.item()))
-            return mll.item()
+        sum_mll = self.session.run(self.tb_mll, feed_dict=feed_dict)
+
+        mll = np.mean(self.session.run((self.log_likelihood), feed_dict=feed_dict), 0)
+        #print(' Training MLL of a sample: {}'.format(mll.item()))
+        return mll.item(), sum_mll
 
     def _collect_cacheable_params(self):
         params = [layer.cacheable_params() for layer in self.layers]
@@ -160,4 +146,3 @@ class BaseModel(object):
         self.cached_params = {}
         for param, value in zip(cached_params, evaluated):
             self.cached_params[param] = value
-

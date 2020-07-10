@@ -57,23 +57,15 @@ def train_model(cfg, model, Xvalid, Yvalid, writer, save_dir):
     best_iter = 0
     best_model = model
     for i in tdqm(range(cfg.train.iterations), ascii=" .oO0", bar_format="{total_time}: {percentage:.0f}%|{bar}{r_bar}"):
-        if i >= 0:
-            for j in range(cfg.train.sghmc_step):
-                model.sghmc_step()
-            summary = model.train_hypers(tb=True)
-            print("Iteration", i, end='\r')
-            mll, sum_mll = model.print_sample_performance(tb=True)
-            print(f"MLL: {mll}")
-            # set_trace()
-            writer.add_summary(summary, global_step=i)
-            writer.add_summary(sum_mll, global_step=i)
-        else:
-            for j in range(cfg.train.sghmc_step):
-                model.sghmc_step()
-            model.train_hypers()
-            print("Iteration", i, end='\r')
-            mll, _ = model.print_sample_performance(tb=True)
-            print(f"MLL: {mll}")
+        for j in range(cfg.train.sghmc_step):
+            model.sghmc_step()
+        summary = model.train_hypers()
+        print("Iteration", i, end='\r')
+        mll, sum_mll = model.print_sample_performance()
+        print(f"MLL: {mll}")
+        # set_trace()
+        writer.add_summary(summary, global_step=i)
+        writer.add_summary(sum_mll, global_step=i)
 
         if np.round(mll - mll_max, decimals=5) > 0:
             print('MLL increased ({:.7f} --> {:.7f}). Updating values ....'.format(mll_max, mll))
