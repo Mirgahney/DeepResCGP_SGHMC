@@ -54,7 +54,7 @@ class ResCGPNet(DGP):
             base_kernel = self.kernel(input_dim=1 * 1 * input_size[2], lengthscales=2.0)
             print(f'filter_size 1/2-{k}')
             output_featuers = k*self.feature_maps
-            Z = compute_z_inner(X, self.M, output_featuers) if self.expansion_factor >= 1 else Z
+            Z = compute_z_inner(X, self.M, output_featuers, 3) if self.expansion_factor >= 1 else Z
             layer = ConvLayer(input_size, patch_size=1, stride=2, base_kernel=base_kernel, Z=Z,
                               feature_maps_out=output_featuers, pad='VALID', ltype='Plain')
             input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width,
