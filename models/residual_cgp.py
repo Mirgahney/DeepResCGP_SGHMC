@@ -7,90 +7,7 @@ from conv.kernels import ConvKernel
 import kernels
 from likelihoods import MultiClass
 from conv import utils as conv_utils
-
-def get_model_structure(layers):
-    if layers == 3:
-        strides = (2, 1, 1)
-        filters = (5, 3, 5)
-    elif layers == 6:
-        strides = (2, 1, 1, 1, 1, 1)
-        filters = (5, 3, 3, 3, 3, 5)
-    elif layers == 12: #TODO: add non-residual layers with 3 filter size replacing 5x5, we can scall up the layers to 18
-        strides = (2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
-        filters = (5, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3)
-        residual = (0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0)
-    else:
-        raise Exception("undefined number of layers")
-    return strides, filters
-
-def get_kernel(kernel_name):
-    if kernel_name == 'rbf':
-        kernel = kernels.SquaredExponential
-    elif kernel_name == 'matern12':
-        kernel = kernels.Matern12
-    elif kernel_name == 'matern32':
-        kernel = kernels.Matern32
-    elif kernel_name == 'matern52':
-        kernel = kernels.Matern52
-    else:
-        raise NotImplementedError
-    return kernel
-
-def compute_z_inner(X, M, feature_maps_out):
-    filter_matrix = np.zeros((5, 5, X.shape[3], feature_maps_out))
-    filter_matrix[2, 2, :, :] = 1.0
-    convolution = tf.nn.conv2d(X, filter_matrix, [1, 2, 2, 1],"VALID")
-    config = tf.compat.v1.ConfigProto()
-    config.gpu_options.allow_growth = True
-    with tf.compat.v1.Session(config=config) as sess:
-        filtered = sess.run(convolution)
-
-    return conv_utils.cluster_patches(filtered, M, 5)
-
-def get_model(cfg, Xtrain, Ytrain):
-    layers = []
-    strides, filters = get_model_structure(cfg.layers)
-    kernel = get_kernel(cfg.kernel)
-
-    Z_inner = compute_z_inner(Xtrain, cfg.M, cfg.feature_maps)
-    patches = conv_utils.cluster_patches(Xtrain, cfg.M, 10)
-    input_size = Xtrain.shape[1:]
-
-    for layer in range(0, cfg.layers):
-        if layer == 0:
-            Z = patches
-        else:
-            Z = Z_inner
-        filter_size = filters[layer]
-        stride = strides[layer]
-        if layer != cfg.layers-1:
-
-            base_kernel = kernel(input_dim=filter_size*filter_size*input_size[2], lengthscales=2.0)
-            print('filter_size ', filter_size)
-            if filter_size == 3:
-                pad = 'SAME'
-                ltype = 'Residual'
-            else:
-                pad = 'VALID'
-                ltype = 'Plain'
-            layer = ConvLayer(input_size, patch_size=filter_size, stride=stride, base_kernel=base_kernel, Z=Z,
-                              feature_maps_out=cfg.feature_maps, pad=pad, ltype =ltype)
-            input_size = (layer.patch_extractor.out_image_height, layer.patch_extractor.out_image_width, cfg.feature_maps)
-        else:
-            rbf = kernel(input_dim=filter_size*filter_size*cfg.feature_maps, lengthscales=2.0)
-            patch_extractor = PatchExtractor(input_size, filter_size=filter_size, feature_maps=10, stride=stride)
-            conv_kernel = ConvKernel(rbf, patch_extractor)
-            layer = Layer(conv_kernel, 10, Z)
-
-        layers.append(layer)
-
-    return DGP(Xtrain.reshape(Xtrain.shape[0], np.prod(Xtrain.shape[1:])),
-            Ytrain.reshape(Ytrain.shape[0], 1),
-            layers=layers,
-            likelihood=MultiClass(10),
-            minibatch_size=cfg.batch_size,
-            window_size=100,
-            adam_lr=cfg.lr)
+from utils import get_kernel, compute_z_inner
 
 class ResCGPNet(DGP):
     def __init__(self, X, Y, num_classes:int=10, layers_strcut=[2, 2, 2], window_size:int=100, expansion_factor:int=1,
@@ -104,8 +21,8 @@ class ResCGPNet(DGP):
         self.window_size = window_size  #TODO: checkout what this parameter for
         self.expansion_factor = expansion_factor  # additive expansion factor
         self.Reslayers = []
-        patches = conv_utils.cluster_patches(X, self.M, 10)
-        Z_inner = compute_z_inner(X, self.M, self.feature_maps)
+        patches = conv_utils.cluster_patches(X, self.M, 7)
+        Z_inner = compute_z_inner(X, self.M, self.feature_maps, 3)
         input_size = X.shape[1:]
 
         input_size = self._add_first_layer(patches, input_size)

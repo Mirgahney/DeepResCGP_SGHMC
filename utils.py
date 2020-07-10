@@ -59,17 +59,18 @@ def get_kernel(kernel_name):
     else:
         raise NotImplementedError
     return kernel
-
-def compute_z_inner(X, M, feature_maps_out):
-    filter_matrix = np.zeros((5, 5, X.shape[3], feature_maps_out))
-    filter_matrix[2, 2, :, :] = 1.0
+#TODO:8.
+def compute_z_inner(X, M, feature_maps_out, filter_size=5):
+    filter_matrix = np.zeros((filter_size, filter_size, X.shape[3], feature_maps_out))
+    mat_center = filter_size//2
+    filter_matrix[mat_center, mat_center, :, :] = 1.0
     convolution = tf.nn.conv2d(X, filter_matrix, [1, 2, 2, 1], "VALID")
     config = tf.compat.v1.ConfigProto()
     config.gpu_options.allow_growth = True
     with tf.compat.v1.Session(config=config) as sess:
         filtered = sess.run(convolution)
 
-    return conv_utils.cluster_patches(filtered, M, 5)
+    return conv_utils.cluster_patches(filtered, M, filter_size)
 
 def sample_performance_acc(model, POSTERIOR_SAMPLES=25):
     #model.collect_samples(POSTERIOR_SAMPLES, 200)

@@ -47,7 +47,7 @@ def creat_task(cfg):
     model_name = f'{cfg.models.name}_fm_{cfg.models.params.feature_maps}_M{cfg.model.M}_K{cfg.model.kernel}_' \
                  f'lr{cfg.optimizer.lr}_bs{cfg.data.batch_size}_efactor{cfg.model.expansion_factor}_' \
                  f'sghmc{cfg.train.sghmc_step}'
-    save_dir = f'{cfg.top_dir}/{cfg.data.name}/{model_name}_change_zinner_size' #/0_{cfg.train.rep}'
+    save_dir = f'{cfg.top_dir}/{cfg.data.name}/{model_name}/0_{cfg.train.rep}' #_change_zinner_size'
     print(f'Save model at {save_dir}\n')
     writer = tf.compat.v1.summary.FileWriter(f'{save_dir}')
     return save_dir, writer
