@@ -1,6 +1,6 @@
 models:
-  class: models.ResCGPNet
-  name: ResCGPNet11
+  class: models.PlainCGPNet
+  name: PlainCGPNet11
   params:
     X: ???
     Y: ???

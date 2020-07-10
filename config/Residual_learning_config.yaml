@@ -11,18 +11,24 @@ train:
   sghmc_step: 1
   iterations: 2500
   load: False
+  rep: 1
+
+model:
+  kernel: 'rbf'
+  expansion_factor: 0
+  M: 384
 
 dir: '/home/mirgahney/Projects/Personal' #/DeepResCGP_SGHMC'
-top_dir: ${dir}/save_data #/three_view
+top_dir: ${dir}/DeepResCGP_SGHMC/test #run
 
 data:
-  name: 'fashion_mnist'
+  name: 'fashion_mnist' #'cifar'
   path: ${dir}/datasets
   batch_size: 128
   num_classes: 10
   train_pct: 0.8333333333
 
-save_model: True
+save_model: False
 
 defaults:
   - models: res_cgp_net8
