@@ -12,6 +12,7 @@ train:
   iterations: 2500
   load: False
   rep: 1
+  train_hyper: 100
 
 model:
   kernel: 'rbf'
@@ -22,7 +23,7 @@ dir: '/home/mirgahney/Projects/Personal' #/DeepResCGP_SGHMC'
 top_dir: ${dir}/DeepResCGP_SGHMC/test #run
 
 data:
-  name: 'fashion_mnist' #'cifar'
+  name: 'fashion_mnist' #'fashion_mnist' #'cifar'
   path: ${dir}/datasets
   batch_size: 128
   num_classes: 10
@@ -31,6 +32,6 @@ data:
 save_model: False
 
 defaults:
-  - models: res_cgp_net8
+  - models: plain_cgp_net8
   #- cost:  #image_velocity_tracking #image_trajectory_tracking
   - hydra/run: customized

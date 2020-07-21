@@ -26,7 +26,8 @@ class PlainCGPNet(DGP):
         input_size = X.shape[1:]
 
         input_size = self._add_first_layer(patches, input_size)
-        input_size, Z = self._add_layers(input_size, Z_inner, layers_strcut, X)
+        input_size = self._add_layers(input_size, Z_inner, layers_strcut, X)
+        Z = compute_z_inner(X, self.M, input_size[2], input_size[0])
         self._add_last_layer(input_size, Z)
 
         super().__init__(X.reshape(X.shape[0], np.prod(X.shape[1:])),
@@ -61,7 +62,7 @@ class PlainCGPNet(DGP):
                           output_featuers)
             self.Reslayers.append(layer)
 
-        return input_size, Z
+        return input_size
 
     def _add_first_layer(self, Z, input_size):
         base_kernel = self.kernel(input_dim=7 * 7 * input_size[2], lengthscales=2.0)

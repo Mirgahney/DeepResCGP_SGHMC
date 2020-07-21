@@ -88,8 +88,9 @@ def sample_performance_acc(model, POSTERIOR_SAMPLES=25):
     return correct / Y_batch.shape[0]
 
 
-def measure_accuracy(model, Xtest, Ytest, POSTERIOR_SAMPLES=25):
-    model.collect_samples(POSTERIOR_SAMPLES, 200)
+def measure_accuracy(model, Xtest, Ytest, collect=False, POSTERIOR_SAMPLES=25):
+    if collect:
+        model.collect_samples(POSTERIOR_SAMPLES, 200)
     batch_size = 32
     batches = Xtest.shape[0] // batch_size
     correct = 0
